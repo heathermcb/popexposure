@@ -1,0 +1,52 @@
+[project]
+name = "pop-exposure"
+version = "0.1.1"
+description = "A package for finding the number of people residing near environmental hazards"
+authors = [
+    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "geopandas==1.0.1",
+    "scipy==1.14.0",
+    "numpy==2.0.1",
+    "matplotlib",
+    "pathlib",
+    "typing",
+    "shapely",
+    "contextily",
+    "affine",
+    "rasterio",
+    "tqdm",
+    "pyarrow",
+    "exactextract",
+    "pre-commit",
+    "mkdocs"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+license = "MIT"
+keywords = ["population", "exposure", "wildfires", "environmental hazards", "climate hazards", "find people exposed"]
+
+
+
+[tool.poetry]
+packages = [{include = "pop_exposure", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.urls]
+Homepage = "https://github.com/heathermcb/popex"
+Documentation = "https://github.com/heathermcb/popex#readme"
+Source = "https://github.com/heathermcb/popex"
