@@ -1,6 +1,6 @@
 [project]
-name = "pop-exposure"
-version = "0.1.7"
+name = "pop_exp"
+version = "0.1.0"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"}
@@ -38,7 +38,7 @@ keywords = ["population", "exposure", "wildfires", "environmental hazards", "cli
 
 
 [tool.poetry]
-packages = [{include = "pop_exposure", from = "src"}]
+packages = [{include = "pop_exp", from = "src"}]
 
 
 [build-system]
