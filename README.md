@@ -1,6 +1,6 @@
 ## PopEx: functions to assess the number of people exposed to an environmental hazard
 
-The goal of PopEx is to determine the number of people residing near environmental hazards such as wildfires, floods, oil wells, or tropical cyclones.
+pop_exp is a package aimed to help environmental epidemiologists with exposure assignment. The goal of pop_exp is to provide functions to determine the number of people residing near environmental hazards such as wildfires, floods, oil wells, or tropical cyclones that are fast, reproducible, and easy to use.
 
 ### I. The details
 

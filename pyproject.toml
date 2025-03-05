@@ -1,6 +1,6 @@
 [project]
 name = "pop-exposure"
-version = "0.1.5"
+version = "0.1.7"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"}
@@ -19,7 +19,6 @@ dependencies = [
     "affine",
     "rasterio",
     "tqdm",
-    "contextily",
     "pyarrow",
     "exactextract",
     "pre-commit",
