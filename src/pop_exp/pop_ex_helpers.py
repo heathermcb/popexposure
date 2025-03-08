@@ -11,6 +11,11 @@ from shapely.ops import unary_union
 from shapely import wkt
 from pathlib import Path
 from exactextract import exact_extract
+import warnings
+
+warnings.filterwarnings("ignore")
+# just here to stop the script complaining about how we're taking centroids
+# in a projected instead of geographic crs
 
 
 # take a lat lon pair and return the best UTM projection for that lat lon
@@ -309,7 +314,6 @@ def mask_raster_partial_pixel(ch_df: gpd.GeoDataFrame, raster_path: str):
     with rasterio.open(raster_path) as src:
         # Ensure CRS alignment
         if ch_df.crs != src.crs:
-            print(f"Reprojecting GeoDataFrame to match raster CRS: {src.crs}")
             ch_df = ch_df.to_crs(src.crs)
 
     # Use exact_extract to calculate population sums for each geometry
@@ -338,7 +342,7 @@ def mask_raster_partial_pixel(ch_df: gpd.GeoDataFrame, raster_path: str):
 def find_num_people_affected(
     path_to_hazards: str, raster_path: str, by_unique_hazard: bool
 ):
-    print(f"Running the function")
+    print(f"Running find_num_people_affected")
     # prep data
     # get ID, hazard geom, best UTM, buffer dist, and buffered geom in WGS84
     ch_df = prep_data(path_to_hazards=path_to_hazards)
