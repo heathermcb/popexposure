@@ -1,0 +1,21 @@
+name: pop_ex
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12.4
+  - geopandas=1.0.1
+  - jupyter==1.0.0
+  - numpy==2.0.1
+  - scipy=1.14.0
+  - pathlib
+  - typing
+  - shapely
+  - matplotlib
+  - affine
+  - rasterio
+  - tqdm
+  - pip=24.2
+  - pip:
+      - pre-commit
+      - mkdocs

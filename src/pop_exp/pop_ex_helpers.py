@@ -484,4 +484,9 @@ def find_number_of_people_residing_by_geo(
 
     num_people_by_geo = num_people_by_geo[["ID_spatial_unit", "num_people_affected"]]
 
+    # rename num_people_affected to num_residing
+    num_people_by_geo = num_people_by_geo.rename(
+        columns={"num_people_affected": "num_people_residing"}
+    )
+
     return num_people_by_geo
