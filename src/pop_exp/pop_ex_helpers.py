@@ -262,51 +262,6 @@ def add_bounding_box_col(
     return ch_df
 
 
-# this function does the fast raster read in piece of the larger functions
-# it takes in a dataframe with buffered hazard geometries and bounding boxes,
-# and it opens and masks a raster to find how many people are in those
-# geographies.
-# def mask_raster_with_geoms(ch_df: gpd.GeoDataFrame, raster_path: str):
-#     # find num of people in geoms
-#     for index, row in tqdm(
-#         ch_df.iterrows(), total=len(ch_df), desc="Masking raster (4/4)"
-#     ):
-#         bounding_box = row["bounding_box"]
-#         buffered_hazard_geometry = row["geometry"]
-
-#         # load raster data only in bounding box, need bounding box to mol
-#         mol_crs = "ESRI:54009"
-#         bbox_transformed = (
-#             gpd.GeoSeries([bounding_box], crs="EPSG:4326").to_crs(mol_crs).iloc[0]
-#         )
-
-#         # open the raster file
-#         with rasterio.open(raster_path) as src:
-#             # read raster data within the bounding box
-#             window = src.window(*bbox_transformed.bounds)
-#             pop_data = src.read(1, window=window)
-#             pop_transform = src.window_transform(window)
-
-#             # mask w buffered hazard so we can sum over hazard area
-#             buffered_hazard_geometry = gpd.GeoSeries(
-#                 [buffered_hazard_geometry], crs="EPSG:4326"
-#             ).to_crs(src.crs)
-#             out_image, out_transform = mask(
-#                 src,
-#                 buffered_hazard_geometry.geometry,
-#                 crop=True,
-#                 filled=True,
-#                 nodata=0,
-#                 all_touched=True,
-#             )
-
-#             # sum over hazard area and save
-#             pop_sum = np.sum(out_image)
-#             ch_df.at[index, "num_people_affected"] = pop_sum
-
-#     return ch_df
-
-
 # mask raster partial pixel
 def mask_raster_partial_pixel(ch_df: gpd.GeoDataFrame, raster_path: str):
     print("Masking raster: 4/4")
@@ -368,58 +323,6 @@ def find_num_people_affected(
 
     # final df
     return ch_df
-
-
-# take path to climate hazard shapefile, path to additional
-# geographies, such as ZCTAs or counties, and a raster dataset of gridded
-# population data, and return a dataframe with the number of people affected by
-# each climate hazard in each geography
-# ---------------------------------------------------------
-# read in a climate hazard shapefile or spatial unit shapefile (counties,
-# zcta, etc) in parquet format that contains a string column with the geom ID
-# and a geography column, but nothing else.
-# def find_num_people_affected_by_geo(
-#     path_to_hazards: str,
-#     path_to_additional_geos: str,
-#     raster_path: str,
-#     by_unique_hazard: bool,
-# ):
-#     # prep data
-#     # get ID, hazard geom, best UTM, buffer dist, and buffered geom in WGS84
-#     # also get ad geos in WGS84
-#     ch_shp, ad_geo = prep_data(
-#         path_to_hazards=path_to_hazards, path_to_additional_geos=path_to_additional_geos
-#     )
-
-#     # find overlapping buffered hazards
-#     # select and rename columns in filtered_ch - ID, and set buffered hazard to be geom
-#     ch_shp = ch_shp[["ID_climate_hazard", "buffered_hazard"]]
-#     # rename buffered hazard to geometry
-#     ch_shp = ch_shp.rename(columns={"buffered_hazard": "geometry"})
-#     ch_shp = ch_shp.set_geometry("geometry")
-#     # call
-#     if not by_unique_hazard:
-#         ch_shp = combine_overlapping_geometries(ch_shp, id_column="ID_climate_hazard")
-
-#     # intersect buffered hazards w spatial units
-#     # intersection gives new dataframe with hazard ID, unit ID, and piece of geo
-#     # intersecting w each buffered hazard
-#     # set active geom to buffered hazard
-#     ch_shp = ch_shp.set_geometry("geometry", crs="EPSG:4326")
-#     unit_hazard_intersection = gpd.overlay(ch_shp, ad_geo, how="intersection")
-
-#     # get bounding boxes for unit hazard pieces combined
-#     unit_hazard_intersection = add_bounding_box_col(
-#         unit_hazard_intersection, target_col="geometry"
-#     )
-
-#     # find num of people affected by each piece
-#     num_af = mask_raster_with_geoms(unit_hazard_intersection, raster_path)
-
-#     # select columns
-#     num_af = num_af[["ID_climate_hazard", "ID_spatial_unit", "num_people_affected"]]
-
-#     return num_af
 
 
 # option with partial pixel
