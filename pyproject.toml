@@ -38,7 +38,7 @@ keywords = ["population", "exposure", "wildfires", "environmental hazards", "cli
 
 
 [tool.poetry]
-packages = [{include = "pop_exp", from = "src"}]
+packages = [{include = "PopExp", from = "src"}]
 
 
 [build-system]
