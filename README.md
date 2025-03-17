@@ -8,7 +8,7 @@
 
 `Pop_Exp` can estimate either (a) the number of people living within the buffer distance of each hazard (e.g., the number of people living within 10 km of each individual wildfire disaster burned area in 2018 in California) or (b) the number of people living within the buffer distance of any of the cumulative set of hazards (e.g., the number of people living within 10 km of any wildfire disaster burned area in 2018 in California). These estimates can be broken down by additional spatial units such as census tracts, counties, or ZCTAs. For example, `Pop_Exp` can find the number of people living within 10 km of any wildfire disaster burned area in 2018 by ZCTA, and calculate spatial unit denominators such as the number of residents in each ZCTA. `Pop_Exp` could also be used to assess exposure based on residential proximity to hurricanes, gas wells, emissions sources, or other environmental hazards mapped in geospatial data.
 
-A tutorial on how to use all the functions in `Pop_Exp` is available on GitHub, at [https://github.com/heathermcb/PopExp/demo](https://github.com/heathermcb/PopExp/demo). Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
+A tutorial on how to use all the functions in `Pop_Exp` is available on GitHub, at [https://github.com/heathermcb/Pop_Exp/demo](https://github.com/heathermcb/Pop_Exp/demo). Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
 
 ### II. Available functions
 
@@ -90,7 +90,7 @@ This function is designed to be used with `find_num_people_affected_by_geo` to p
 1. **Python**
    If you do not already have Python, you can install Python at [https://www.python.org/downloads/](https://www.python.org/downloads/).
    We recommend programming in Python with VS Code.
-   We've provided a virtual environment containing the requirements of `PopExp` at [https://github.com/heathermcb/PopExp](https://github.com/heathermcb/PopExp).
+   We've provided a virtual environment containing the requirements of `Pop_Exp` at [https://github.com/heathermcb/PopExp](https://github.com/heathermcb/PopExp).
 
 2. **Inputs**
    You need:
@@ -118,13 +118,110 @@ You can run the function in Python by calling the function with the appropriate 
 ```python
 python find_num_people_affected(hazard_gdf, pop_raster, buffer_dist=1000)
 python find_num_people_affected_by_geo(hazard_gdf, pop_raster, geo_gdf, buffer_dist=1000)
+```
 
 
+### V. Additional must-reads on how Pop_Exp works
+
+Written in plainer language!
+
+**Temporality**: Hazard data is for a specific time period. Maybe you have fracking-related quakes for 2010, or wildfires for 2019. `PopExp` requires you to pick the gridded population raster that you want to use to calculate how many people live near those hazards yourself, so pick one that corresponds to the correct time period. For example, if you have hazard data from 2009-2021, you might not want to use the same population dataset for all of your environmental hazards. You might want to call the function several times on subsets of your data. Maybe you want to call it for each year between 2009 and 2015 using the GHSL population raster from 2010, and then again for each year between 2016 and 2021 with the population raster for 2020. This is up to you to handle.
+
+**Overlapping hazards**: Depending on your dataset, you might have some overlapping hazards. Maybe you are looking at oil wells and you want to know how many people live within 1 km of oil wells in the US. Because there are often multiple wells next to each other, there may be people who live within 1 km of multiple wells. The parameter `by_unique_hazard` allows you to specify how you want to count people. If `by_unique_hazard=False`, the function counts people ONCE if they are within the buffer distance of any hazard, and returns output with overlapping hazards grouped together. It doesn't tell you if people are within the buffer distance of multiple hazards. If `by_unique_hazard=True`, it tells you how many people are within the buffer of each hazard, and double-counts people who are within the buffer of two or more hazards.
+
+This means if you have multiple years or months of data, even if you're using the same population dataset, you might want to do separate function runs for separate years or months. For example, if you have wildfire data from 2015-2020, and you want to know how many people were affected by fires by ZCTA by year, if you throw all the data in this function at once with `by_unique_hazard=False`, if a fire burned ZCTA 10032 in 2015 and in 2020, all you will know from the function output is the count of people who were within the buffer distance of EITHER fire perimeter in that ZCTA. That may not be what you want. The results will not be broken down by year. So you could instead run the function once for each year 2015-2020, to determine how many people were affected by any fire by year.
 
 
+### VI. Additional details on how these functions work if you're interested
+
+Here are a list of helpers and main functions in the source code of this package. 
+Whether these helpers are all called by each main function and in which order changes based on what's being calculated.
+
+1: `prep_geographies`
+This function reads in a climate hazard geospatial data file and spatial unit geospatial data file (counties, zcta, etc.) if applicable, in GeoParquet format or GeoJSON format. This file must contains a string column called ID_climate_hazard, a numeric column called 'buffer_dist', and a geometry column, and nothing else. This function makes geometries valid, reprojects to WGS84 projection, and if the data is hazard data, adds a column indicating the best UTM projection to the data frame. 
+
+- Input: dataframe with 3 columns
+  1.`ID_climate_hazard` or `ID_spatial_unit`
+  2. `buffer_dist`
+  3. `geometry`
+- Output: dataframe with 4 columns
+  1. ID column: `ID_climate_hazard` or `ID_spatial_unit`
+  2. original hazard geometry (`geometry`)
+  3. buffer distance (`buffer_dist`)
+  4. column with best UTM projection for each hazard (not present for spatial unit dataframes) (`utm_projection`)
 
 
+2: `add_buffered_geom_col`
+This function reprojects each hazard into the proper UTM zone and then buffers the provided geometries. The buffer distance is provided in the buffer_dist column. If the buffer distance is 0, the function does not buffer the geometry. After the buffer distance is added, the function reprojects the geometry back to WGS84.
 
+- Input: dataframe with 3 columns
+  1. `ID_climate_hazard`
+  2. `buffer_dist`
+  3. `geometry`
+  4. `utm_projection`
+- Output: dataframe with 5 columns
+  1. `ID_climate_hazard`
+  2. `buffer_dist`
+  3. `geometry`
+  4. `utm_projection`
+  5. buffered hazard geometry: `buffered_hazard` 
+
+
+3: `combine_overlapping_geometries`
+This function combines any overlapping hazard geometries into a single geometry, using the GeoPandas function unary_union. This is necessary when calling `find_num_people_affected` or `find_num_people_affected_by_geo` with by_unique_hazard=True. This allows these functions to avoid double counting people who are within the buffered area of two or more hazards. This function retains an ID column that concatenates the IDs of the overlapping hazards.
+
+    Input: prepared data that has been output from prep_data
+    Output: dataframe with 3 columns
+        climate hazard ID (ID_climate_hazard)
+        original hazard geometry (geometry)
+
+4. 
+
+Step 2: `add_buffer_distance_col`
+This function adds a buffer distance to the provided polygons. There are two options for buffer distance, assigned based on whether the hazard area is larger than an area threshold, in square meters.
+
+- Input: dataframe that comes out of `prep_geographies`
+- Output: dataframe with 3 columns
+  1.  `ID_climate_hazard`
+  2.  original hazard geometry (`geometry`)
+  3.  buffer distance
+
+Step 4: `add_buffered_geom_col`
+This function buffers the original `geometry` using the buffer distance found in step 3.
+
+- Input: dataframe that comes out of `add_buffer_distance_col`
+- Output: dataframe with 4 columns
+  1.  `ID_climate_hazard`
+  2.  original hazard geometry (`geometry`)
+  3.  buffer distance
+  4.  buffered hazard geometry (`buffered_hazard_geometry`)
+
+Step 5: `add_bounding_box_col`
+This function creates a bounding box around the buffered geometry. The purpose is to make it easy to load the population raster only in the bounding box of the hazard for ~_swiftness_~.
+
+- Input: dataframe that comes out of `add_buffered_geom_col`
+- Output: dataframe with 5 columns
+  1.  `ID_climate_hazard`
+  2.  original hazard geometry (`geometry`)
+  3.  buffer distance
+  4.  buffered hazard geometry (`buffered_hazard_geometry`)
+  5.  bounding box around buffered hazard geometry (`bounding_box`)
+
+Step 6: `find_num_people_affected`
+This function estimates the number of people affected within a buffered area of a hazard. It does this by **XXX**.
+
+- Input: dataframe that comes out of `add_bounding_box_col`
+- Output: dataframe with 6 columns
+  1.  `ID_climate_hazard`
+  2.  original hazard geometry (`geometry`)
+  3.  buffer distance
+  4.  buffered hazard geometry (`buffered_hazard_geometry`)
+  5.  bounding box around buffered hazard geometry (`bounding_box`)
+  6.  number of people affected by the hazard (`num_people_affected`)
+
+Step 7: `find_num_people_affected_by_geo`
+
+Step 8: `find_pop_density`
 
 
 
