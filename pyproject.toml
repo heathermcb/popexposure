@@ -1,5 +1,5 @@
 [project]
-name = "PopExp"
+name = "Pop_Exp"
 version = "0.1.5"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
@@ -38,7 +38,7 @@ keywords = ["population", "exposure", "wildfires", "environmental hazards", "cli
 
 
 [tool.poetry]
-packages = [{include = "PopExp", from = "src"}]
+packages = [{include = "Pop_Exp", from = "src"}]
 
 
 [build-system]
@@ -46,6 +46,6 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Homepage = "https://github.com/heathermcb/PopExp"
-Documentation = "https://github.com/heathermcb/PopExp#readme"
-Source = "https://github.com/heathermcb/PopExp"
+Homepage = "https://github.com/heathermcb/Pop_Exp"
+Documentation = "https://github.com/heathermcb/Pop_Exp#readme"
+Source = "https://github.com/heathermcb/Pop_Exp"

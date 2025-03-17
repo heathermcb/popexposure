@@ -1,46 +1,47 @@
-## `PopExp`: functions to assess the number of people exposed to an environmental hazard
+## `Pop_Exp`: functions to assess the number of people exposed to an environmental hazard
 
-`PopExp` is an open-source Python package designed to help environmental epidemiologists reproducibly assess population-level exposure to environmental hazards based on residential proximity. Functions in the package are designed to be fast, memory-efficient, and easy to use.
+`Pop_Exp` is an open-source Python package designed to help environmental epidemiologists reproducibly assess population-level exposure to environmental hazards based on residential proximity. Functions in the package are designed to be fast, memory-efficient, and easy to use.
 
 
 ### I. Overview
 
-`PopExp` identifies the number of people living near an environmental hazard or set of environmental hazards by overlaying buffered environmental hazard geospatial data with gridded population data, in order to count the number of people that live within the affected area. 
+`Pop_Exp` identifies the number of people living near an environmental hazard or set of environmental hazards by overlaying buffered environmental hazard geospatial data with gridded population data, in order to count the number of people that live within the affected area. 
 
-`PopExp` can estimate either (a) the number of people living within the buffer distance of each hazard (e.g., the number of people living within 10 km of each individual wildfire disaster burned area in 2018 in California) or (b) the number of people living within the buffer distance of any of the cumulative set of hazards (e.g., the number of people living within 10 km of any wildfire disaster burned area in 2018 in California). These estimates can be broken down by additional spatial units such as census tracts, counties, or ZCTAs. For example, `PopExp` can find the number of people living within 10 km of any wildfire disaster burned area in 2018 by ZCTA, and calculate spatial unit denominators such as the number of residents in each ZCTA. `PopExp` could also be used to assess exposure based on residential proximity to hurricanes, gas wells, emissions sources, or other environmental hazards mapped in geospatial data. 
+`Pop_Exp` can estimate either (a) the number of people living within the buffer distance of each hazard (e.g., the number of people living within 10 km of each individual wildfire disaster burned area in 2018 in California) or (b) the number of people living within the buffer distance of any of the cumulative set of hazards (e.g., the number of people living within 10 km of any wildfire disaster burned area in 2018 in California). These estimates can be broken down by additional spatial units such as census tracts, counties, or ZCTAs. For example, `Pop_Exp` can find the number of people living within 10 km of any wildfire disaster burned area in 2018 by ZCTA, and calculate spatial unit denominators such as the number of residents in each ZCTA. `Pop_Exp` could also be used to assess exposure based on residential proximity to hurricanes, gas wells, emissions sources, or other environmental hazards mapped in geospatial data. 
 
-A tutorial on how to use all the functions in `PopExp` is available on GitHub, at https://github.com/heathermcb/PopExp/demo. Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
+A tutorial on how to use all the functions in `Pop_Exp` is available on GitHub, at https://github.com/heathermcb/PopExp/demo. Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
 
 ### II. Available functions
 
-There are three functions available in `PopExp`:
+There are three functions available in `Pop_Exp`:
 
-1. `find_num_people_affected`: Estimate the number of people living within an buffer distance of an environmental hazard or set of environmental hazards.
+### 1. `find_num_people_affected`: Estimate the number of people living within an buffer distance of an environmental hazard or set of environmental hazards.
 
    **Inputs:**
 
-   - **Environmental hazard geospatial data**: Path to a geospatial data file (GeoJSON or GeoParquet file) with geometries describing environmental hazards (e.g., wildfire disaster boundaries in the US 2015-2020, active oil and gas well coordinates in Texas in 2018, or global data of all tropical cyclone paths in 2020). Hazards can be any kind of geometry except a geometry collection. Columns must include:
-     - `ID_climate_hazard`: Unique identifier for each hazard.
-     - `geometry`: Geometry of the hazard.
-     - `buffer_dist`: Buffer distance to be applied to each hazard. This function buffers each hazard with the corresponding buffer distance passed by the user. If all values in `buffer_dist` are the same, the same buffer distance applied to all hazards. The user can populate the column `buffer_dist` with different values for each hazards, based on attributes of the hazards or hazard size. If all `buffer_dist values` are `0`, no buffer will be applied to the hazards. 
-   - **Population raster data**: Gridded population dataset as a raster file (e.g., GHSL population dataset which provides coverage for the US from 1990-2020 available for download here: https://human-settlement.emergency.copernicus.eu/ghs_pop.php).
-   - **Argument 'by_unique_hazard**: This additional argument determines how `find_num_people_affected` will count people living within buffered hazard boundaries.
-   - `by_unique_hazard`_(required, True/False)_: When this parameter is set to `True`, `find_num_people_affected` will compute the population affected by each hazard separately. When `True`, if hazards overlap with each other, the same people may be counted as exposed to two or more distinct hazards (e.g., double counted or more). When this parameter is set to `False`, `find_num_people_affected` will compute the total number of people exposed to any hazard in the set of hazards passed to the function. See `Key Features` for more information. There is no default.
+  - **Environmental hazard geospatial data**: Path to a geospatial data file (GeoJSON or GeoParquet file) with geometries describing environmental hazards (e.g., wildfire disaster boundaries in the US 2015-2020, active oil and gas well coordinates in Texas in 2018, or global data of all tropical cyclone paths in 2020). Hazards can be any kind of geometry except a geometry collection. Columns must include:
+    - `ID_climate_hazard`: Unique identifier for each hazard.
+    - `geometry`: Geometry of the hazard.
+    - `buffer_dist`: Buffer distance to be applied to each hazard. This function buffers each hazard with the corresponding buffer distance passed by the user. If all values in `buffer_dist` are the same, the same buffer distance applied to all hazards. The user can populate the column `buffer_dist` with different values for each hazards, based on attributes of the hazards or hazard size. If all `buffer_dist values` are `0`, no buffer will be applied to the hazards. 
+  - **Population raster data**: Gridded population dataset as a raster file (e.g., GHSL population dataset which provides coverage for the US from 1990-2020 available for download here: https://human-settlement.emergency.copernicus.eu/ghs_pop.php).
+  - **Argument 'by_unique_hazard**: This additional argument determines how `find_num_people_affected` will count people living within buffered hazard boundaries.
+  - `by_unique_hazard`_(required, True/False)_: When this parameter is set to `True`, `find_num_people_affected` will compute the population affected by each hazard separately. When `True`, if hazards overlap with each other, the same people may be counted as exposed to two or more distinct hazards (e.g., double counted or more). When this parameter is set to `False`, `find_num_people_affected` will compute the total number of people exposed to any hazard in the set of hazards passed to the function. See `Key Features` for more information. There is no default.
 
    **Outputs:**
 
-   - Dataframe containing:
-     - `ID_climate_hazard`: If `by_unique_hazard` was `True`, this will be a column containing the unique identifiers for each hazard. If `by_unique_hazard` was `False`, this will be a list of unique IDs for hazards that did not overlap with other hazards, and concatenated strings of the IDs of any groups of overlapping hazards.
-     - `num_people_affected`: Number of people living within the buffer distance of each hazard or group of hazards, where each row is a single hazard ID or a concatenated list of hazard IDs. Again, if `by_unique_hazard` was `True`, the output data will contain one row for every `ID_climate_hazard`. This means that the rows will be mutually non-exclusive and people may be double counted if they are in the buffered area of two or more different hazards. If `by_unique_hazard` was `False`, the output will contain concatenated `ID_climate_hazard`s wherever hazards or hazard buffers overlapped and people will be counted once if they were in the area of the group of two or more overlapping buffered hazards. See `Key Features` for a detailed explanation.
+  - Dataframe containing:
+    - `ID_climate_hazard`: If `by_unique_hazard` was `True`, this will be a column containing the unique identifiers for each hazard. If `by_unique_hazard` was `False`, this will be a list of unique IDs for hazards that did not overlap with other hazards, and concatenated strings of the IDs of any groups of overlapping hazards.
+    - `num_people_affected`: Number of people living within the buffer distance of each hazard or group of hazards, where each row is a single hazard ID or a concatenated list of hazard IDs. Again, if `by_unique_hazard` was `True`, the output data will contain one row for every `ID_climate_hazard`. This means that the rows will be mutually non-exclusive and people may be double counted if they are in the buffered area of two or more different hazards. If `by_unique_hazard` was `False`, the output will contain concatenated `ID_climate_hazard`s wherever hazards or hazard buffers overlapped and people will be counted once if they were in the area of the group of two or more overlapping buffered hazards. See `Key Features` for a detailed explanation.
 
    **Key Features:**
+   
   - For overlapping hazard geometries or buffered hazard geometries, the user can choose from two options using the argument `by_unique_hazard`. When this parameter is set to `True`, `find_num_people_affected` estimates the population affected by each hazard separately; if hazards overlap with each other, the same people may be counted as exposed to two or more distinct hazards (i.e., double counted or more). When it is set to `False`, the population affected by overlapping hazards will be combined and people will be counted once if they were in the area of two or more overlapping hazards. The IDs of any overlapping hazards will be concatenated in the output, and the number of people living within the union of those buffered hazards will be returned.
-   - The user can select the gridded population dataset they want to use based on the population and time period of interest.
-   -`find_num_people_affected` uses the buffer distances created and passed by the user to buffer the hazard geometries in the best Universal Transverse Mercator projection for each environmental hazard, based on the hazard centroid latitude and longitude, ensuring the most accurate buffered area is created and minimizing distortion from wild map projections. 
-   - `find_num_people_affected` masks the gridded residential population raster with the buffered hazard geometries using partial pixel masking, using the package exactextract. This means if the hazard geometry overlaps with half of a given pixel, when all pixel values within the buffered hazard geometry are summed, half of the given pixel value is added to the sum. This produces the most accurate count of people affected, in contrast to centroid masking or including the entire value of any pixels touched by the hazard geometry.
-   - Raster masking is done sequentially in exactextract for each individual geometry or set of overlapping geometries in the set of hazards to minimize working memory use and maximize computation speed. 
+  - The user can select the gridded population dataset they want to use based on the population and time period of interest.
+  -`find_num_people_affected` uses the buffer distances created and passed by the user to buffer the hazard geometries in the best Universal Transverse Mercator projection for each environmental hazard, based on the hazard centroid latitude and longitude, ensuring the most accurate buffered area is created and minimizing distortion from wild map projections. 
+  - `find_num_people_affected` masks the gridded residential population raster with the buffered hazard geometries using partial pixel masking, using the package exactextract. This means if the hazard geometry overlaps with half of a given pixel, when all pixel values within the buffered hazard geometry are summed, half of the given pixel value is added to the sum. This produces the most accurate count of people affected, in contrast to centroid masking or including the entire value of any pixels touched by the hazard geometry.
+  - Raster masking is done sequentially in exactextract for each individual geometry or set of overlapping geometries in the set of hazards to minimize working memory use and maximize computation speed. 
 
-2. `find_num_people_affected_by_geo`: Estimate the number of people living within a buffer distance of an environmental hazard or set of environmental hazards by additional geographies (e.g., census tract, ZCTA).
+### 2. `find_num_people_affected_by_geo`: Estimate the number of people living within a buffer distance of an environmental hazard or set of environmental hazards by additional geographies (e.g., census tract, ZCTA).
 
    This function is very similar to `find_num_people_affected`, but returns output by an additional geography (e.g., ZCTAs, counties, census tracts). It provides the number of people living near a buffered hazard or set of buffered hazards in each ZCTA, county, etc. It requires an additional input of a geospatial dataset of additional spatial unit (eg. ZCTA, census tract) geometries. 
 
@@ -55,8 +56,8 @@ There are three functions available in `PopExp`:
    - **Geographic boundaries**: Path to a geospatial data file containing boundaries an additional spatial unit (e.g., ZCTAs, counties, census tracts). Columns must include:
      - `ID_spatial_unit`: Unique identifier for each geography
      - `geometry`: Geometry of the spatial units
-   - **Argument 'by_unique_hazard**: This additional argument determines how `find_num_people_affected` will count people living within buffered hazard boundaries.
-   - `by_unique_hazard`_(required, True/False)_: When this parameter is set to `True`, `find_num_people_affected` will compute the population affected by each hazard separately. When `True`, if hazards overlap with each other, the same people may be counted as exposed to two or more distinct hazards (e.g., double counted or more). When this parameter is set to `False`, `find_num_people_affected` will compute the total number of people exposed to any hazard in the set of hazards passed to the function. See `Key Features` for more information. There is no default.
+  - **Argument 'by_unique_hazard**: This additional argument determines how `find_num_people_affected` will count people living within buffered hazard boundaries.
+  - `by_unique_hazard`_(required, True/False)_: When this parameter is set to `True`, `find_num_people_affected` will compute the population affected by each hazard separately. When `True`, if hazards overlap with each other, the same people may be counted as exposed to two or more distinct hazards (e.g., double counted or more). When this parameter is set to `False`, `find_num_people_affected` will compute the total number of people exposed to any hazard in the set of hazards passed to the function. See `Key Features` for more information. There is no default.
 
   **Outputs:**
 
@@ -67,10 +68,11 @@ There are three functions available in `PopExp`:
      - `num_people_affected`: Number of people living within the buffer distance of each hazard or group of hazards, where each row is a single hazard ID or a concatenated list of hazard IDs. Again, if `by_unique_hazard` was `True`, the output data will contain one row for every `ID_climate_hazard`. This means that the rows will be mutually non-exclusive and people may be double counted if they are in the buffered area of two or more different hazards. If `by_unique_hazard` was `False`, the output will contain concatenated `ID_climate_hazard`s wherever hazards or hazard buffers overlapped and people will be counted once if they were in the area of the group of two or more overlapping buffered hazards. See `Key Features` for a detailed explanation.
   
 
-**Key Features:**
-This function returns the count of people for each `ID_climate_hazard` - `ID_spatial_unit` combination. For example, a given row may contain the number of people affected by `ID_climate_hazard` 123 in ZCTA 98107. `by_unique_hazard` works the same way here as above in `find_num_people_affected`, as does hazard buffering and partial pixel masking. 
+  **Key Features:**
+  
+  This function returns the count of people for each `ID_climate_hazard` - `ID_spatial_unit` combination. For example, a given row may contain the number of people affected by `ID_climate_hazard` 123 in ZCTA 98107. `by_unique_hazard` works the same way here as above in `find_num_people_affected`, as does hazard buffering and partial pixel masking. 
 
-3. `find_number_of_people_residing_by_geo`: Estimate the number of people living within additional spatial units such as ZCTAs, counties, or census tracts. 
+### 3. `find_number_of_people_residing_by_geo`: Estimate the number of people living within additional spatial units such as ZCTAs, counties, or census tracts. 
 
 This function is designed to be used with `find_num_people_affected_by_geo` to produce denominators for spatial units. 
 
@@ -124,7 +126,7 @@ You can run the function in Python by calling the function with the appropriate 
 
   `python find_num_people_affected_by_geo(hazard_gdf, pop_raster, geo_gdf, buffer_dist=1000)`
 
-### V. Additional must-reads on how this works**
+### V. Additional must-reads on how this works
 
 Written in plainer language!
 
