@@ -5,7 +5,6 @@ import pyarrow.parquet as pq
 import rasterio
 import rasterio.windows
 from tqdm import tqdm
-from rasterio.mask import mask
 from shapely.validation import make_valid
 from shapely.ops import unary_union
 from shapely import wkt
@@ -27,8 +26,9 @@ def get_best_utm_projection(lat, lon):
 
 
 # add UTM projection column to a geodataframe initially only containing
-# climate hazard IDs and a geometry column. this column will contain the best
-# UTM projection for the centroid of each geometry
+# climate hazard IDs, a buffer distance column, and a geometry column.
+# this column will contain the best UTM projection for the centroid of each
+# geometry
 # -----------------------------------------------------------------------------
 # will call this before running any buffering in final functions,
 # as buffering is done in meters and we want to make sure we're using the
@@ -75,28 +75,21 @@ def load_ch(path_to_hazard: str) -> gpd.GeoDataFrame:
 
 
 # read in a climate hazard shapefile or spatial unit shapefile (counties,
-# zcta, etc) in parquet format that contains a string column with the geom ID
-# and a geography column, but nothing else. this function renames the ID cols
-# consistently, makes geoms valid, adds a column indicating the best UTM
+# zcta, etc) in parquet or geojson format that contains a string column with
+# the geom ID, a numeric column with a buffer distance, and a geography column,
+# but nothing else.
+# this function makes geoms valid, adds a column indicating the best UTM
 # projection, and reprojects to WGS84
-# hazard ID should be a string and geometry should be the geographies column and
-# must be named "geometry"
-# --------------------------------------------------------------------------
-# need some checks and to throw errors if the dataframe cols are not the
-# correct type or if there are more than two cols
-# - more than 2
-# - wrong types
-# - no geometry col
-# include these in the validations, and have those be part of a validation
-# function that runs first
+# hazard ID should be a string, buffer distance numeric, and and geometry
+# should be the geometry column and must be named "geometry"
 def prep_geographies(shp_path: str, geo_type: str):
     # print message
     if geo_type == "hazard":
         print(
-            f"Reading data and finding best UTM projection for hazard geometries (1/4)"
+            f"Reading data and finding best UTM projection for hazard geometries (1/3)"
         )
     elif geo_type == "spatial_unit":
-        print(f"Reading spatial unit geometries (1/4)")
+        print(f"Reading spatial unit geometries (1/3)")
 
     # read in data
     shp_df = load_ch(shp_path)
@@ -119,11 +112,11 @@ def prep_geographies(shp_path: str, geo_type: str):
 
 
 # mutate a dataframe containing climate hazards: buffer each climate hazard
-# geometry, based on previously ided distances, and add new col containing a
-# new buffered hazard geometry
+# geometry, based on the existing column 'buffer_dist', and add new col
+# containing a new buffered hazard geometry
 def add_buffered_geom_col(ch_df: gpd.GeoDataFrame):
     for index, row in tqdm(
-        ch_df.iterrows(), total=len(ch_df), desc="Buffering hazard geometries (2/4)"
+        ch_df.iterrows(), total=len(ch_df), desc="Buffering hazard geometries (2/3)"
     ):
         best_utm = row["utm_projection"]
         hazard_geom = row["geometry"]
@@ -147,9 +140,9 @@ def add_buffered_geom_col(ch_df: gpd.GeoDataFrame):
     return ch_df
 
 
-# prep data: this function takes in path names to climate hazards and additional
-# geographies, and calls the above helpers to read in data, find best UTM crs
-# for each climate hazard, add buffer distances, and buffer hte hazards.
+# prep data: this function takes in path names to climate hazards and
+# optionally to additional geographies, and calls the above helpers to read
+# in data, find best UTM crs for each climate hazard, and buffer the hazards.
 # it returns a geodataframe with the hazard IDs, the original hazard geometry,
 # best UTM projection, buffer distance, and buffered hazard geometry. if there
 # are additional geos, it returns a tuple of the above plus a dataframe
@@ -241,30 +234,15 @@ def combine_overlapping_geometries(ch_df: gpd.GeoDataFrame, id_column: str):
     return combined_geoms
 
 
-# mutate a dataframe containing climate hazards: create envelop buffer for
-# the geodataframe's geometries, and add these as a col to the ch dataframe.
-# doing this to make it easy to load raster for pop only in the bounding box
-# of the hazard for ~*swiftness*~. arg to add a buffer to the bounding box if
-# going to use to calculate pop dens
-def add_bounding_box_col(
-    ch_df: gpd.GeoDataFrame, target_col: str, buffer_buffer: int = 0
-):
-    # if we're not doing pop dens the bounding box should be no larger than
-    # the buffered geography. for pop dens need room for radius of convolution
-    # kernel
-    for index, row in tqdm(
-        ch_df.iterrows(), total=len(ch_df), desc="Adding bounding box (3/4)"
-    ):
-        target_col_geom = row[target_col]
-        bounding_box = target_col_geom.envelope.buffer(buffer_buffer)
-        ch_df.at[index, "bounding_box"] = bounding_box
-
-    return ch_df
-
-
-# mask raster partial pixel
+# mask raster partial pixel: this function mutates a dataframe to add
+# a column for the population of each buffered hazard area.
+# this function opens the population raster and masks each buffered hazard
+# geometry or group of geometries, and sums the raster values to find the
+# residential population of the buffered hazard area.
+# it adds this sum to the dataframe as a new column called
+# 'num_people_affected'.
 def mask_raster_partial_pixel(ch_df: gpd.GeoDataFrame, raster_path: str):
-    print("Masking raster: 4/4")
+    print("Masking raster: 3/3")
     # Open the raster file
     with rasterio.open(raster_path) as src:
         # Ensure CRS alignment
@@ -287,13 +265,9 @@ def mask_raster_partial_pixel(ch_df: gpd.GeoDataFrame, raster_path: str):
     return ch_df
 
 
-# take a climate hazard dataframe with buffered hazard geoms and bounding boxes,
-# and a gridded pop dataset, and return the number of people within the buffer
+# take a climate hazard dataframe with buffered hazard geoms and a gridded pop
+# dataset, and return the number of people within the buffer
 # each climate hazard/the number of people affected by each hazard
-# ---------------------------------------------------------
-# note: this is doing binary masking, and including pixels if they touch the
-# geom. can improve this if we want to calc the proportion of pixel covered by
-# the hazard
 def find_num_people_affected(
     path_to_hazards: str, raster_path: str, by_unique_hazard: bool
 ):
@@ -312,9 +286,6 @@ def find_num_people_affected(
     if not by_unique_hazard:
         ch_df = combine_overlapping_geometries(ch_df, id_column="ID_climate_hazard")
 
-    # add bounding box col
-    ch_df = add_bounding_box_col(ch_df, target_col="geometry")
-
     # find num of people affected
     ch_df = mask_raster_partial_pixel(ch_df, raster_path)
 
@@ -325,7 +296,9 @@ def find_num_people_affected(
     return ch_df
 
 
-# option with partial pixel
+# take a climate hazard dataframe with buffered hazard geoms and a gridded pop
+# dataset, as well as additional geographies, and return the number of people
+# living within the buffered area of each climate hazard by additional geography
 def find_num_people_affected_by_geo(
     path_to_hazards: str,
     path_to_additional_geos: str,
@@ -356,11 +329,6 @@ def find_num_people_affected_by_geo(
     ch_shp = ch_shp.set_geometry("geometry", crs="EPSG:4326")
     unit_hazard_intersection = gpd.overlay(ch_shp, ad_geo, how="intersection")
 
-    # get bounding boxes for unit hazard pieces combined
-    unit_hazard_intersection = add_bounding_box_col(
-        unit_hazard_intersection, target_col="geometry"
-    )
-
     # find num of people affected by each piece
     num_af = mask_raster_partial_pixel(unit_hazard_intersection, raster_path)
 
@@ -378,9 +346,6 @@ def find_number_of_people_residing_by_geo(
 
     # prep geographies
     ad_geo = prep_geographies(path_to_additional_geos, geo_type="spatial_unit")
-
-    # add bounding box col
-    ad_geo = add_bounding_box_col(ad_geo, target_col="geometry")
 
     # mask raster and find people by geo
     num_people_by_geo = mask_raster_partial_pixel(ad_geo, raster_path)
