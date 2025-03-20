@@ -90,7 +90,7 @@ This function is designed to be used with `find_num_people_affected_by_geo` to p
 1. **Python**
    If you do not already have Python, you can install Python at [https://www.python.org/downloads/](https://www.python.org/downloads/).
    We recommend programming in Python with VS Code.
-   We've provided a virtual environment containing the requirements of `Pop_Exp` at [https://github.com/heathermcb/PopExp](https://github.com/heathermcb/PopExp).
+   We've provided a virtual environment containing the requirements of `Pop_Exp` at [https://github.com/heathermcb/Pop_Exp](https://github.com/heathermcb/Pop_Exp).
 
 2. **Inputs**
    You need:
@@ -111,7 +111,7 @@ This function is designed to be used with `find_num_people_affected_by_geo` to p
 
 ### IV. How to run
 
-Please see the tutorial for a detailed explanation of how to use all functions in `PopExp`, at [https://github.com/heathermcb/pop_exp/demo](https://github.com/heathermcb/pop_exp/demo).
+Please see the tutorial for a detailed explanation of how to use all functions in `Pop_Exp`, at [https://github.com/heathermcb/Pop_Exp/tree/main/demo/demo_code](https://github.com/heathermcb/Pop_Exp/tree/main/demo/demo_code).
 
 You can run the function in Python by calling the function with the appropriate arguments. Note that below `hazard_gdf`, `pop_raster`, and `geo_gdf` are the paths to the respective files. Example calls:
 
@@ -125,7 +125,7 @@ python find_num_people_affected_by_geo(hazard_gdf, pop_raster, geo_gdf, buffer_d
 
 Written in plainer language!
 
-**Temporality**: Hazard data is for a specific time period. Maybe you have fracking-related quakes for 2010, or wildfires for 2019. `PopExp` requires you to pick the gridded population raster that you want to use to calculate how many people live near those hazards yourself, so pick one that corresponds to the correct time period. For example, if you have hazard data from 2009-2021, you might not want to use the same population dataset for all of your environmental hazards. You might want to call the function several times on subsets of your data. Maybe you want to call it for each year between 2009 and 2015 using the GHSL population raster from 2010, and then again for each year between 2016 and 2021 with the population raster for 2020. This is up to you to handle.
+**Temporality**: Hazard data is for a specific time period. Maybe you have fracking-related quakes for 2010, or wildfires for 2019. `Pop_Exp` requires you to pick the gridded population raster that you want to use to calculate how many people live near those hazards yourself, so pick one that corresponds to the correct time period. For example, if you have hazard data from 2009-2021, you might not want to use the same population dataset for all of your environmental hazards. You might want to call the function several times on subsets of your data. Maybe you want to call it for each year between 2009 and 2015 using the GHSL population raster from 2010, and then again for each year between 2016 and 2021 with the population raster for 2020. This is up to you to handle.
 
 **Overlapping hazards**: Depending on your dataset, you might have some overlapping hazards. Maybe you are looking at oil wells and you want to know how many people live within 1 km of oil wells in the US. Because there are often multiple wells next to each other, there may be people who live within 1 km of multiple wells. The parameter `by_unique_hazard` allows you to specify how you want to count people. If `by_unique_hazard=False`, the function counts people ONCE if they are within the buffer distance of any hazard, and returns output with overlapping hazards grouped together. It doesn't tell you if people are within the buffer distance of multiple hazards. If `by_unique_hazard=True`, it tells you how many people are within the buffer of each hazard, and double-counts people who are within the buffer of two or more hazards.
 

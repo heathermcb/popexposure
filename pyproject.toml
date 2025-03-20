@@ -1,6 +1,6 @@
 [project]
 name = "Pop_Exp"
-version = "0.1.6"
+version = "0.1.7"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"}
