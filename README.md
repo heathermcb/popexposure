@@ -8,7 +8,7 @@
 
 `Pop_Exp` can estimate either (a) the number of people living within the buffer distance of each hazard (e.g., the number of people living within 10 km of each individual wildfire disaster burned area in 2018 in California) or (b) the number of people living within the buffer distance of any of the cumulative set of hazards (e.g., the number of people living within 10 km of any wildfire disaster burned area in 2018 in California). These estimates can be broken down by additional spatial units such as census tracts, counties, or ZCTAs. For example, `Pop_Exp` can find the number of people living within 10 km of any wildfire disaster burned area in 2018 by ZCTA, and calculate spatial unit denominators such as the number of residents in each ZCTA. `Pop_Exp` could also be used to assess exposure based on residential proximity to hurricanes, gas wells, emissions sources, or other environmental hazards mapped in geospatial data.
 
-A tutorial on how to use all the functions in `Pop_Exp` is available on GitHub, at [https://github.com/heathermcb/Pop_Exp/demo](https://github.com/heathermcb/Pop_Exp/demo). Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
+A tutorial on how to use all the functions in `Pop_Exp` is available on GitHub, at [https://github.com/heathermcb/Pop_Exp/tree/main/demo/demo_code](https://github.com/heathermcb/Pop_Exp/tree/main/demo/demo_code). Please see the tutorial for a detailed explanation on how to use the package functions for exposure assessment.
 
 ### II. Available functions
 
