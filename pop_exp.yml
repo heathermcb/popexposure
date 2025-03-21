@@ -1,4 +1,4 @@
-name: pop_ex
+name: pop_exp
 channels:
   - defaults
   - conda-forge
