@@ -16,6 +16,8 @@ dependencies:
   - rasterio
   - tqdm
   - pip=24.2
+  - contextily
   - pip:
       - pre-commit
       - mkdocs
+      - Pop_Exp
