@@ -1,9 +1,14 @@
 [project]
-name = "Pop_Exp"
-version = "0.1.9"
+name = "popexposure"
+version = "0.1.0"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
-    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"}
+    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"
+    name = "joanacasey", email = "jcasey@uw.edu",
+    name = "nina-flores", email = "nf2497@cumc.columbia.edu",
+    name = "lawrence-chillrud", email = "chili@u.northwestern.edu",
+    name = "laurenwilner", email = "wilnerl@uw.edu"
+    }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,7 +27,10 @@ dependencies = [
     "pyarrow",
     "exactextract",
     "pre-commit",
-    "mkdocs"
+    "mkdocs",
+    "osgeo",
+    "pyproj"
+    "functools"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -38,7 +46,7 @@ keywords = ["population", "exposure", "wildfires", "environmental hazards", "cli
 
 
 [tool.poetry]
-packages = [{include = "Pop_Exp", from = "src"}]
+packages = [{include = "popexposure", from = "src"}]
 
 
 [build-system]
@@ -46,6 +54,6 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Homepage = "https://github.com/heathermcb/Pop_Exp"
-Documentation = "https://github.com/heathermcb/Pop_Exp#readme"
-Source = "https://github.com/heathermcb/Pop_Exp"
+Homepage = "https://github.com/heathermcb/popexposure"
+Documentation = "https://github.com/heathermcb/popexposure#readme"
+Source = "https://github.com/heathermcb/popexposure"
