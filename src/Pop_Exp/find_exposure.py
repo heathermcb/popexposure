@@ -15,6 +15,7 @@ import warnings
 warnings.filterwarnings("ignore")
 # just here to stop the script complaining about how we're taking centroids
 # in a projected instead of geographic crs
+# probably bad form
 
 
 # take a lat lon pair and return the best UTM projection for that lat lon
@@ -167,6 +168,37 @@ def prep_data(
         return ch_shp
 
 
+# helper for combine overlapping geoms
+def concat_ids(series):
+    return "_".join(series.astype(str))
+
+
+# combine overlapping geometries without ids
+# this is going to be a temporary replacement for the one below
+# to see if this helps
+def combine_overlapping_geometries(ch_df: gpd.GeoDataFrame, id_column: str):
+    # self join on geodataframe to get all polygon intersections
+    intersects = ch_df.sjoin(ch_df, how="left", predicate="intersects")
+
+    # dissolve intersections on right index indices using the minimum value
+    intersects_diss = intersects.dissolve(
+        "ID_climate_hazard_right", aggfunc={"ID_climate_hazard_left": concat_ids}
+    )
+    # dissolve again on left index using minimum
+    intersects_diss = intersects_diss.reset_index().dissolve(
+        "ID_climate_hazard_left", aggfunc={"ID_climate_hazard_right": concat_ids}
+    )
+
+    intersects_diss = intersects_diss.rename(
+        columns={"ID_climate_hazard_right": "ID_climate_hazard"}
+    )
+    # select ID climate hazard and geometry
+    intersects_diss = intersects_diss[["ID_climate_hazard", "geometry"]]
+    intersects_diss = intersects_diss.reset_index(drop=True)
+
+    return intersects_diss
+
+
 # take a geodataframe of geometries (named 'geometry' column) and their IDs,
 # and if two geometries overlap, combine them via unary union into one geometry.
 # if more than two overlap, combine them all via unary union into one geometry.
@@ -188,50 +220,50 @@ def prep_data(
 # of that fire. for geos, for each zcta (or similar) you'll get people affected
 # by fires that overlapped and overlapped the zcta. there might be more than
 # one group of fires/hazards
-def combine_overlapping_geometries(ch_df: gpd.GeoDataFrame, id_column: str):
-    # step 1: explode the data
-    # step 2: unary union the data
-    # step 3: explode again
-    # step 4: rejoin names
+# def combine_overlapping_geometries(ch_df: gpd.GeoDataFrame, id_column: str):
+#     # step 1: explode the data
+#     # step 2: unary union the data
+#     # step 3: explode again
+#     # step 4: rejoin names
 
-    # expand data frame to climate hazards that are not overlapping
-    ch_df = ch_df.explode()
+#     # expand data frame to climate hazards that are not overlapping
+#     ch_df = ch_df.explode()
 
-    # get unary union of all geometries in the dataset
-    all_one_geometry = unary_union(ch_df["geometry"])
+#     # get unary union of all geometries in the dataset
+#     all_one_geometry = unary_union(ch_df["geometry"])
 
-    # get non-overlapping hazards by exploding all_one_geometry
-    non_overlapping_hazards = gpd.GeoDataFrame(
-        {"geometry": [all_one_geometry]}, crs=ch_df.crs
-    ).explode()
+#     # get non-overlapping hazards by exploding all_one_geometry
+#     non_overlapping_hazards = gpd.GeoDataFrame(
+#         {"geometry": [all_one_geometry]}, crs=ch_df.crs
+#     ).explode()
 
-    # rejoin IDs
-    # join the IDs back to the non-overlapping hazards
-    joined = gpd.sjoin(
-        non_overlapping_hazards, ch_df, how="left", predicate="intersects"
-    )
+#     # rejoin IDs
+#     # join the IDs back to the non-overlapping hazards
+#     joined = gpd.sjoin(
+#         non_overlapping_hazards, ch_df, how="left", predicate="intersects"
+#     )
 
-    # drop geometry to group by that column
-    joined["geometry_wkt"] = joined["geometry"].apply(lambda geom: geom.wkt)
-    without_geom = joined.drop(columns="geometry")
+#     # drop geometry to group by that column
+#     joined["geometry_wkt"] = joined["geometry"].apply(lambda geom: geom.wkt)
+#     without_geom = joined.drop(columns="geometry")
 
-    # group by geometry_wkt, and aggregate by concatenating the
-    # ID_climate_hazard into one string
-    without_geom = (
-        without_geom.groupby("geometry_wkt")
-        .agg({id_column: lambda x: "___".join(x)})
-        .reset_index()
-    )
-    # add back geoms
-    combined_geoms = gpd.GeoDataFrame(
-        without_geom,
-        geometry=without_geom["geometry_wkt"].apply(wkt.loads),
-        crs=ch_df.crs,
-    )
-    # select id and geometry and name right
-    combined_geoms = combined_geoms[[id_column, "geometry"]]
+#     # group by geometry_wkt, and aggregate by concatenating the
+#     # ID_climate_hazard into one string
+#     without_geom = (
+#         without_geom.groupby("geometry_wkt")
+#         .agg({id_column: lambda x: "___".join(x)})
+#         .reset_index()
+#     )
+#     # add back geoms
+#     combined_geoms = gpd.GeoDataFrame(
+#         without_geom,
+#         geometry=without_geom["geometry_wkt"].apply(wkt.loads),
+#         crs=ch_df.crs,
+#     )
+#     # select id and geometry and name right
+#     combined_geoms = combined_geoms[[id_column, "geometry"]]
 
-    return combined_geoms
+#     return combined_geoms
 
 
 # mask raster partial pixel: this function mutates a dataframe to add
