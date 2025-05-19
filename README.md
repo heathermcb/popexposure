@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="writing/figs/modified-logo.png" alt="popexposure logo" width="120"/>
+  <img src="writing/figs/modified-logo.png" alt="" width="120"/>
 </p>
 
 ## popexposure: Functions to estimate the number of people living near environmental hazards
