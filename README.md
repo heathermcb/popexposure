@@ -1,7 +1,8 @@
-<h1 style="display: flex; align-items: center; justify-content: space-between;">
-  <span>popexposure: functions to estimate the number of people living near environmental hazards</span>
-  <img src="writing/figs/modified-logo.png" alt="popexposure logo" width="110"/>
-</h1>
+<p align="left">
+  <img src="writing/figs/modified-logo.png" alt="popexposure logo" width="120"/>
+</p>
+
+## popexposure: Functions to estimate the number of people living near environmental hazards
 
 ![Python](https://img.shields.io/badge/python-3.6-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
