@@ -1,14 +1,13 @@
 [project]
 name = "popexposure"
-version = "0.1.0"
+version = "1.0.0.dev3"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
-    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"
-    name = "joanacasey", email = "jcasey@uw.edu",
-    name = "nina-flores", email = "nf2497@cumc.columbia.edu",
-    name = "lawrence-chillrud", email = "chili@u.northwestern.edu",
-    name = "laurenwilner", email = "wilnerl@uw.edu"
-    }
+    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"},
+    {name = "joanacasey", email = "jcasey@uw.edu"},
+    {name = "nina-flores", email = "nf2497@cumc.columbia.edu"},
+    {name = "lawrence-chillrud", email = "chili@u.northwestern.edu"},
+    {name = "laurenwilner", email = "wilnerl@uw.edu"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -28,9 +27,8 @@ dependencies = [
     "exactextract",
     "pre-commit",
     "mkdocs",
-    "osgeo",
+    "gdal",
     "pyproj"
-    "functools"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
