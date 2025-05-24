@@ -1,6 +1,6 @@
 [project]
 name = "popexposure"
-version = "1.0.0.dev5"
+version = "1.0.0.dev9"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"},
@@ -10,7 +10,7 @@ authors = [
     {name = "laurenwilner", email = "wilnerl@uw.edu"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "pandas",
     "geopandas==1.0.1",

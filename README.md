@@ -4,7 +4,7 @@
 
 ## popexposure: Functions to estimate the number of people living near environmental hazards
 
-![Python](https://img.shields.io/badge/python-3.6-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-black?logo=github)](https://github.com/heathermcb/popexposure)
 [![PyPI version](https://badge.fury.io/py/popexposure.svg)](https://badge.fury.io/py/popexposure)

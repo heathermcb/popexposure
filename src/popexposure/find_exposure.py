@@ -30,7 +30,7 @@ class PopEstimator:
         """
         self.hazard_data = None
         self.spatial_units = None
-        self.pop = None
+        self.population = None
 
     def prep_data(self, path_to_data: str, geo_type: str) -> gpd.GeoDataFrame:
         """
@@ -189,7 +189,7 @@ class PopEstimator:
         residing = residing.rename(
             columns=lambda c: c.replace("exposedgeometry", "population")
         )
-        self.pop = residing
+        self.populations = residing
         return residing
 
     # --- Helper methods below ---

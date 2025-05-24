@@ -1,10 +1,13 @@
 name: pop_exp
 channels:
-  - defaults
   - conda-forge
+  - defaults
+
 dependencies:
-  - python=3.12.4
-  - geopandas=1.0.1
+  - gdal
+  - rasterio
+  - geopandas
+  - python=3.11
   - jupyter==1.0.0
   - numpy==2.0.1
   - scipy=1.14.0
@@ -13,11 +16,10 @@ dependencies:
   - shapely
   - matplotlib
   - affine
-  - rasterio
   - tqdm
   - pip=24.2
   - contextily
   - pip:
       - pre-commit
       - mkdocs
-      - Pop_Exp
+      - popexposure
