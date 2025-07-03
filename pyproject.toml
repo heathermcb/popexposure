@@ -13,9 +13,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pandas",
-    "geopandas==1.0.1",
-    "scipy==1.14.0",
-    "numpy==2.0.1",
+    "geopandas>=1.0.1",
+    "scipy>=1.10.0",
+    "numpy>=1.20.0",
     "matplotlib",
     "pathlib",
     "typing",

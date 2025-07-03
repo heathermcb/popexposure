@@ -12,11 +12,9 @@ from pathlib import Path
 from exactextract import exact_extract
 import warnings
 import functools
-from osgeo import gdal
 import pyproj
 
 # Suppress warnings about centroid crs but raise exceptions
-gdal.UseExceptions()
 warnings.filterwarnings("ignore")
 
 
@@ -36,7 +34,7 @@ class PopEstimator:
         """
         Reads, cleans, and preprocesses geospatial data for exposure analysis.
 
-        This function loads a geospatial file (GeoJSON or GeoParquet) containing either hazard data (e.g., wildfire burn zones, oil wells)
+        This method loads a geospatial file (GeoJSON or GeoParquet) containing either hazard data (e.g., wildfire burn zones, oil wells)
         or additional administrative geographies (e.g., ZCTAs, census tracts, referred to here as spatial units). It makes all geometries valid,
         removes empty geometries, and, for hazard data, generates buffered geometries for one or more user-specified buffer distances.
         Buffering is performed in the best Universal Transverse Mercator (UTM) projection based on each geometry's centroid latitude and longitude.
@@ -89,7 +87,7 @@ class PopEstimator:
         else:
             raise ValueError("geo_type must be 'hazard' or 'spatial_unit'")
 
-    def exposed_pop(
+    def est_exposed_pop(
         self,
         pop_path: str,
         hazard_specific: bool,
@@ -167,7 +165,7 @@ class PopEstimator:
             self.exposed = exposed
             return exposed
 
-    def pop(self, pop_path: str, spatial_units: str) -> pd.DataFrame:
+    def est_pop(self, pop_path: str, spatial_units: str) -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies using a gridded population raster.
 
