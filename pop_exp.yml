@@ -1,9 +1,9 @@
 name: pop_exp
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.8
+  - gdal>=3.8
   # Core popexposure dependencies
   - geopandas
   - rasterio

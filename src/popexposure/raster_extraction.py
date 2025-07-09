@@ -101,7 +101,7 @@ class RasterExtractor:
                 num_exposed = exact_extract(
                     raster_path, valid_gdf, "sum", output="pandas"
                 )
-                result.loc[valid_mask] = num_exposed["sum"].values
+                result.loc[valid_mask] = num_exposed["sum"].values.astype(int)
 
             exposed_col = f"exposed{geom_col.replace('buffered_hazard', '')}"
             shp_df[exposed_col] = result
