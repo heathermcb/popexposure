@@ -218,6 +218,7 @@ class PopEstimator:
         hazard_specific: bool,
         hazards: gpd.GeoDataFrame = None,
         admin_units: gpd.GeoDataFrame = None,
+        stat: str = "sum",
     ) -> pd.DataFrame:
         """
         Estimate the number of people living within a buffer distance of
@@ -255,6 +256,10 @@ class PopEstimator:
             An optional GeoDataFrame of additional administrative geographies,
             containing a string column called ``ID_admin_unit`` and a geometry
             column called ``geometry``.
+        stat : str, default "sum"
+            Statistic to calculate from raster values. Options:
+            - "sum": Total population within geometry (default)
+            - "mean": Average raster value within geometry
 
         Returns
         -------
@@ -266,9 +271,9 @@ class PopEstimator:
             hazard column (e.g., if the input had columns ``buffered_hazard_10``,
             ``buffered_hazard_100``, and ``buffered_hazard_1000``, the output
             will have ``exposed_10``, ``exposed_100``, and ``exposed_1000``).
-            Each ``exposed`` column contains the sum of raster values (population)
-            within the relevant buffered hazard geometry or buffered hazard
-            geometry and admin unit intersection.
+            Each ``exposed`` column contains the statistic (sum or mean) of raster
+            values (population) within the relevant buffered hazard geometry or
+            buffered hazard geometry and admin unit intersection.
 
             The number of rows in the output DataFrame depends on the function
             arguments:
@@ -330,7 +335,7 @@ class PopEstimator:
         if admin_units is None:
             if not hazard_specific:
                 hazards = go.combine_geometries_by_column(hazards)
-            exposed = re.mask_raster_partial_pixel(hazards, pop_path)
+            exposed = re.mask_raster_partial_pixel(hazards, pop_path, stat=stat)
             self.exposed = exposed
             return exposed
 
@@ -341,12 +346,14 @@ class PopEstimator:
                 hazards_gdf=hazards, admin_units_gdf=admin_units
             )
             exposed = re.mask_raster_partial_pixel(
-                intersected_hazards, raster_path=pop_path
+                intersected_hazards, raster_path=pop_path, stat=stat
             )
             self.exposed = exposed
             return exposed
 
-    def est_pop(self, pop_path: str, admin_units: str) -> pd.DataFrame:
+    def est_pop(
+        self, pop_path: str, admin_units: str, stat: str = "sum"
+    ) -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies
         using a gridded population raster.
@@ -369,15 +376,21 @@ class PopEstimator:
             GeoDataFrame containing administrative geography geometries. Must
             include a string column called ``ID_admin_unit`` with unique admin
             unit IDs and a geometry column called ``geometry``.
+        stat : str, default "sum"
+            Statistic to calculate from raster values. Options:
+            - "sum": Total population within geometry (default)
+            - "mean": Average raster value within geometry
 
         Returns
         -------
         pandas.DataFrame
             DataFrame with an ``ID_admin_unit`` column matching the input and a
-            ``population`` column, where each value is the sum of raster values
-            within the corresponding admin unit geometry.
+            ``population`` column, where each value is the specified statistic
+            (sum or mean) of raster values within the corresponding admin unit geometry.
         """
-        residing = re.mask_raster_partial_pixel(admin_units, raster_path=pop_path)
+        residing = re.mask_raster_partial_pixel(
+            admin_units, raster_path=pop_path, stat=stat
+        )
         residing = residing.rename(
             columns=lambda c: c.replace("exposedgeometry", "population")
         )

@@ -17,14 +17,14 @@ class RasterExtractor:
 
     @staticmethod
     def mask_raster_partial_pixel(
-        shp_df: gpd.GeoDataFrame, raster_path: str
+        shp_df: gpd.GeoDataFrame, raster_path: str, stat: str = "sum"
     ) -> gpd.GeoDataFrame:
         """
-        Calculate the sum of raster values (e.g., population) within each
+        Calculate the sum or mean of raster values (e.g., population) within each
         geometry using exact_extract for area-weighted extraction.
 
         Processes all geometry columns (main 'geometry' and any 'buffered_hazard_*'
-        columns) and creates corresponding 'exposed' columns with raster value sums.
+        columns) and creates corresponding 'exposed' columns with raster value statistics.
 
         Can be used with a raster with any CRS.
 
@@ -35,6 +35,8 @@ class RasterExtractor:
             Must contain ID columns (ID_hazard, ID_admin_unit) and geometry columns.
         raster_path : str
             Path to the raster file (e.g., population raster)
+        stat : str, default "sum"
+            Statistic to calculate. Options: "sum" or "mean"
 
         Returns
         -------
@@ -49,6 +51,8 @@ class RasterExtractor:
         - Automatically reprojects geometries to match raster CRS
         - Invalid/empty geometries receive 0 values in exposed columns
         - Only returns ID and exposed columns, not original geometries
+        - When stat="sum": returns total population within geometry
+        - When stat="mean": returns average raster value within geometry
 
         Examples
         --------
@@ -63,10 +67,11 @@ class RasterExtractor:
         ... }
         >>> gdf = gpd.GeoDataFrame(data, crs='EPSG:4326')
         >>>
-        >>> # Extract population values
-        >>> result = RasterExtractor.mask_raster_partial_pixel(gdf, "population.tif")
-        >>> result.columns.tolist()
-        ['ID_hazard', 'exposed', 'exposed_500']
+        >>> # Extract total population (sum)
+        >>> result_sum = RasterExtractor.mask_raster_partial_pixel(gdf, "population.tif", stat="sum")
+        >>>
+        >>> # Extract average population density (mean)
+        >>> result_mean = RasterExtractor.mask_raster_partial_pixel(gdf, "population.tif", stat="mean")
         """
         with rasterio.open(raster_path) as src:
             raster_crs = src.crs
@@ -99,9 +104,13 @@ class RasterExtractor:
             if valid_mask.any():
                 valid_gdf = temp_gdf[valid_mask]
                 num_exposed = exact_extract(
-                    raster_path, valid_gdf, "sum", output="pandas"
+                    raster_path, valid_gdf, stat, output="pandas"
                 )
-                result.loc[valid_mask] = num_exposed["sum"].values.astype(int)
+                # Use appropriate data type based on statistic
+                if stat == "sum":
+                    result.loc[valid_mask] = num_exposed[stat].values.astype(int)
+                else:  # stat == "mean"
+                    result.loc[valid_mask] = num_exposed[stat].values.astype(float)
 
             exposed_col = f"exposed{geom_col.replace('buffered_hazard', '')}"
             shp_df[exposed_col] = result
