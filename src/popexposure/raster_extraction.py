@@ -10,7 +10,6 @@ import geopandas as gpd
 import pandas as pd
 import rasterio
 from exactextract import exact_extract
-import functools
 
 
 class RasterExtractor:
@@ -22,19 +21,52 @@ class RasterExtractor:
     ) -> gpd.GeoDataFrame:
         """
         Calculate the sum of raster values (e.g., population) within each
-        geometry in buffered hazard columns using exact_extract.
+        geometry using exact_extract for area-weighted extraction.
+
+        Processes all geometry columns (main 'geometry' and any 'buffered_hazard_*'
+        columns) and creates corresponding 'exposed' columns with raster value sums.
+
+        Can be used with a raster with any CRS.
 
         Parameters
         ----------
         shp_df : geopandas.GeoDataFrame
-            Input GeoDataFrame containing geometries to extract raster values for
+            Input GeoDataFrame containing geometries to extract raster values for.
+            Must contain ID columns (ID_hazard, ID_admin_unit) and geometry columns.
         raster_path : str
-            Path to the raster file
+            Path to the raster file (e.g., population raster)
 
         Returns
         -------
         geopandas.GeoDataFrame
-            GeoDataFrame with 'exposed' columns containing the sum for each geometry
+            Subset GeoDataFrame containing only ID columns and 'exposed' columns.
+            Column naming: 'buffered_hazard_500' → 'exposed_500', 'geometry' → 'exposed'
+
+        Notes
+        -----
+        - Can be used with a raster with any CRS
+        - Uses exact_extract for area-weighted pixel extraction
+        - Automatically reprojects geometries to match raster CRS
+        - Invalid/empty geometries receive 0 values in exposed columns
+        - Only returns ID and exposed columns, not original geometries
+
+        Examples
+        --------
+        >>> import geopandas as gpd
+        >>> from shapely.geometry import Point
+        >>>
+        >>> # Input data with buffered hazards
+        >>> data = {
+        ...     'ID_hazard': ['h1', 'h2'],
+        ...     'geometry': [Point(0, 0).buffer(0.01), Point(1, 1).buffer(0.01)],
+        ...     'buffered_hazard_500': [Point(0, 0).buffer(0.005), Point(1, 1).buffer(0.005)]
+        ... }
+        >>> gdf = gpd.GeoDataFrame(data, crs='EPSG:4326')
+        >>>
+        >>> # Extract population values
+        >>> result = RasterExtractor.mask_raster_partial_pixel(gdf, "population.tif")
+        >>> result.columns.tolist()
+        ['ID_hazard', 'exposed', 'exposed_500']
         """
         with rasterio.open(raster_path) as src:
             raster_crs = src.crs

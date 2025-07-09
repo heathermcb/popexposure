@@ -2,24 +2,22 @@ name: pop_exp
 channels:
   - conda-forge
   - defaults
-
 dependencies:
-  - gdal
-  - rasterio
+  - python>=3.8
+  # Core popexposure dependencies
   - geopandas
-  - python=3.11
-  - jupyter==1.0.0
-  - numpy==2.0.1
-  - scipy=1.14.0
-  - pathlib
-  - typing
-  - shapely
-  - matplotlib
-  - affine
+  - rasterio
+  - pyarrow
   - tqdm
-  - pip=24.2
+  - exactextract
+
+  # Demo notebook dependencies
+  - matplotlib
+  - jupyter
+  - ipykernel
   - contextily
+
+  # popexposure itself
+  - pip
   - pip:
-      - pre-commit
-      - mkdocs
       - popexposure

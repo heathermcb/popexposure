@@ -9,7 +9,7 @@ import geopandas as gpd
 import pandas as pd
 import pyproj
 from shapely.ops import unary_union, transform
-from typing import List, Optional
+from shapely.geometry.base import BaseGeometry
 import functools
 from .geometry_validator import GeometryValidator
 
@@ -18,7 +18,7 @@ class GeometryOperations:
     """Handles buffering, unioning, and intersection operations."""
 
     @staticmethod
-    def get_buffered_geometry(row, buffer_col) -> object:
+    def get_buffered_geometry(row: pd.Series, buffer_col: str) -> BaseGeometry:
         """
         Buffer a single geometry using its appropriate UTM projection.
 
@@ -65,7 +65,7 @@ class GeometryOperations:
 
     @staticmethod
     def add_buffered_geometry_columns(
-        gdf: gpd.GeoDataFrame, chunk_size=500
+        gdf: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         """
         Add buffered geometry columns based on buffer_dist columns.
@@ -145,9 +145,6 @@ class GeometryOperations:
         ----------
         gdf : geopandas.GeoDataFrame
             Input GeoDataFrame
-        geometry_columns : list of str, optional
-            Names of geometry columns to process. If None, uses columns
-            starting with 'buffered_hazard'
         chunk_size : int, optional
             Number of geometries to process per chunk, by default 500
 
@@ -235,8 +232,7 @@ class GeometryOperations:
         >>>
         >>> # Get intersections
         >>> intersections = GeometryOperations.get_geometry_intersections(
-        ...     hazards, units, ['buffered_hazard_500', 'buffered_hazard_1000']
-        ... )
+        ...     hazards, units)
         >>> 'ID_hazard' in intersections.columns
         True
         >>> 'ID_admin_unit' in intersections.columns

@@ -1,7 +1,7 @@
 """
-Data reading utilities for population exposure analysis.
+Data loading and validation for geospatial population exposure analysis.
 
-This module provides classes for reading geospatial data files
+This module provides classes for reading and validating geospatial data files
 used in population exposure calculations.
 """
 
@@ -34,8 +34,7 @@ class DataReader:
 
         Examples
         --------
-        >>> reader = DataReader()
-        >>> gdf = reader.read_geospatial_file("data/hazards.geojson")
+        >>> gdf = DataReader.read_geospatial_file("data/hazards.geojson")
         >>> print(gdf.shape)
         (100, 3)
         """
@@ -53,9 +52,9 @@ class DataReader:
         Validate that GeoDataFrame has required columns for hazard analysis.
 
         Expected columns:
-          - ``ID_hazard``: unique identifier for each hazard
-          - ``geometry``: spatial geometry
-          - ``buffer_dist_*``: one or more buffer distance columns
+          - ``ID_hazard``: unique identifier for each hazard (string/object)
+          - ``geometry``: spatial geometry (geometry dtype)
+          - ``buffer_dist_*``: one or more buffer distance columns (numeric)
 
         Parameters
         ----------
@@ -65,35 +64,24 @@ class DataReader:
         Returns
         -------
         bool
-            True if all required columns are present, False otherwise
-
-        Examples
-        --------
-        >>> import geopandas as gpd
-        >>> from shapely.geometry import Point
-        >>>
-        >>> # Valid hazard data
-        >>> data = {
-        ...     'ID_hazard': ['h1', 'h2'],
-        ...     'buffer_dist_500': [500, 1000],
-        ...     'geometry': [Point(0, 0), Point(1, 1)]
-        ... }
-        >>> gdf = gpd.GeoDataFrame(data)
-        >>> DataReader.validate_hazard_columns(gdf)
-        True
-
-        >>> # Invalid hazard data (missing buffer_dist column)
-        >>> data = {
-        ...     'ID_hazard': ['h1', 'h2'],
-        ...     'geometry': [Point(0, 0), Point(1, 1)]
-        ... }
-        >>> gdf = gpd.GeoDataFrame(data)
-        >>> DataReader.validate_hazard_columns(gdf)
-        False
+            True if all required columns are present with correct types, False otherwise
         """
         required = ["ID_hazard", "geometry"]
         buffer_cols = [col for col in gdf.columns if col.startswith("buffer_dist")]
-        return all(col in gdf.columns for col in required) and len(buffer_cols) > 0
+
+        # Check columns exist
+        if not (all(col in gdf.columns for col in required) and buffer_cols):
+            return False
+
+        # Check types
+        try:
+            return (
+                gdf["ID_hazard"].dtype == "object"
+                and gdf.geometry.dtype.name == "geometry"
+                and all(gdf[col].dtype.kind in "biufc" for col in buffer_cols)
+            )
+        except (KeyError, AttributeError):
+            return False
 
     @staticmethod
     def validate_admin_unit_columns(gdf: gpd.GeoDataFrame) -> bool:
@@ -101,8 +89,8 @@ class DataReader:
         Validate that GeoDataFrame has required columns for admin unit analysis.
 
         Expected columns:
-          - ``ID_admin_unit``: unique identifier for each admin unit
-          - ``geometry``: admin unit geometry
+          - ``ID_admin_unit``: unique identifier for each admin unit (string/object)
+          - ``geometry``: admin unit geometry (geometry dtype)
 
         Parameters
         ----------
@@ -112,36 +100,19 @@ class DataReader:
         Returns
         -------
         bool
-            True if all required columns are present, False otherwise
-
-        Examples
-        --------
-        >>> import geopandas as gpd
-        >>> from shapely.geometry import Polygon
-        >>>
-        >>> # Valid spatial unit data
-        >>> data = {
-        ...     'ID_admin_unit': ['unit1', 'unit2'],
-        ...     'geometry': [
-        ...         Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]),
-        ...         Polygon([(1, 0), (2, 0), (2, 1), (1, 1)])
-        ...     ]
-        ... }
-        >>> gdf = gpd.GeoDataFrame(data)
-        >>> DataReader.validate_admin_unit_columns(gdf)
-        True
-
-        >>> # Invalid admin unit data (missing ID_admin_unit)
-        >>> data = {
-        ...     'name': ['unit1', 'unit2'],
-        ...     'geometry': [
-        ...         Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]),
-        ...         Polygon([(1, 0), (2, 0), (2, 1), (1, 1)])
-        ...     ]
-        ... }
-        >>> gdf = gpd.GeoDataFrame(data)
-        >>> DataReader.validate_admin_unit_columns(gdf)
-        False
+            True if all required columns are present with correct types, False otherwise
         """
         required = ["ID_admin_unit", "geometry"]
-        return all(col in gdf.columns for col in required)
+
+        # Check columns exist
+        if not all(col in gdf.columns for col in required):
+            return False
+
+        # Check types
+        try:
+            return (
+                gdf["ID_admin_unit"].dtype == "object"
+                and gdf.geometry.dtype.name == "geometry"
+            )
+        except (KeyError, AttributeError):
+            return False

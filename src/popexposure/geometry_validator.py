@@ -6,7 +6,6 @@ and CRS operations used in population exposure calculations.
 """
 
 import geopandas as gpd
-import pyproj
 from shapely.validation import make_valid
 from shapely.geometry import Point
 
@@ -45,7 +44,16 @@ class GeometryValidator:
         >>> len(cleaned)
         2
         """
-        return gdf[gdf["geometry"].notnull() & ~gdf["geometry"].is_empty]
+        valid_mask = gdf["geometry"].notnull() & ~gdf["geometry"].is_empty
+
+        if not valid_mask.all():
+            id_col = next(col for col in gdf.columns if "ID" in col)
+            dropped_ids = gdf.loc[~valid_mask, id_col].tolist()
+            print(
+                f"Warning: {len(dropped_ids)} geometries with null/empty values were dropped. IDs: {dropped_ids}"
+            )
+
+        return gdf[valid_mask].copy().reset_index(drop=True)
 
     @staticmethod
     def clean_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -179,7 +187,7 @@ class GeometryValidator:
         Add UTM projection column based on geometry centroids.
 
         Calculates centroid coordinates and determines the optimal UTM
-        projection for each geometry. Also adds centroid coordinate columns.
+        projection for each geometry.
 
         Parameters
         ----------
@@ -189,7 +197,7 @@ class GeometryValidator:
         Returns
         -------
         geopandas.GeoDataFrame
-            GeoDataFrame with added columns: centroid_lon, centroid_lat, utm_projection
+            GeoDataFrame with added column: utm_projection
 
         Examples
         --------
@@ -205,16 +213,17 @@ class GeometryValidator:
         >>>
         >>> # Add UTM projections
         >>> result = GeometryValidator.add_utm_projection_column(gdf)
-        >>> print(result[['ID_hazard', 'centroid_lon', 'centroid_lat', 'utm_projection']])
-          ID_hazard  centroid_lon  centroid_lat utm_projection
-        0        h1         -74.0          40.7    EPSG:32618
-        1        h2         151.0         -33.9    EPSG:32756
+        >>> 'utm_projection' in result.columns
+        True
+        >>> result['utm_projection'].iloc[0]
+        'EPSG:32618'
+        >>> result['utm_projection'].iloc[1]
+        'EPSG:32756'
         """
         gdf = gdf.copy()
 
         # reproject to molleweide for centroid calc
-        if gdf.crs != "ESRI:54009":
-            gdf = gdf.to_crs("ESRI:54009")
+        gdf = gdf.to_crs("ESRI:54009")
 
         # Get centroid coordinates in Mollweide (meters)
         mollweide_centroids_x = gdf.centroid.x
@@ -237,8 +246,7 @@ class GeometryValidator:
         gdf["centroid_lat"] = centroid_points_wgs84.geometry.y
 
         # reproject main geometries back to wgs84
-        if gdf.crs != "EPSG:4326":
-            gdf = gdf.to_crs("EPSG:4326")
+        gdf = gdf.to_crs("EPSG:4326")
 
         # Get UTM projection for each geometry using proper lat/lon coordinates
         gdf["utm_projection"] = gdf.apply(
