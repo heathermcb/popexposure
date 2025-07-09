@@ -361,9 +361,9 @@ class PopEstimator:
         This function estimates the total population residing within administrative
         geographies (e.g., ZCTAs, census tracts) according to a provided gridded
         population raster. This method is meant to be used with the same population
-        raster as ``exposed_pop`` to provide denominators for the total population
+        raster as ``est_exposed_pop`` to provide denominators for the total population
         in each administrative geography, allowing the user to compute the
-        percentage of people exposed to hazards in each admin unit. ``pop``
+        percentage of people exposed to hazards in each admin unit. ``est_pop``
         calculates the sum of raster values within the boundaries of each
         administrative geography geometry provided.
 
