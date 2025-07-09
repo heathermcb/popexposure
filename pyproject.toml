@@ -1,6 +1,6 @@
 [project]
 name = "popexposure"
-version = "1.0.0.dev10"
+version = "1.0.0.dev11"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"},
@@ -12,23 +12,17 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "pandas",
+    # Core data processing (used in multiple modules)
+    "pandas>=1.3.0",
     "geopandas>=1.0.1",
-    "scipy>=1.10.0",
-    "numpy>=1.20.0",
-    "matplotlib",
-    "pathlib",
-    "typing",
-    "shapely",
-    "affine",
-    "rasterio",
-    "tqdm",
-    "pyarrow",
-    "exactextract",
-    "pre-commit",
-    "mkdocs",
-    "gdal",
-    "pyproj"
+    
+    # Geospatial libraries (used in geometry operations and validation)
+    "shapely>=1.8.0",
+    "pyproj>=3.0.0",
+    
+    # Raster processing (used in raster_extraction.py)
+    "rasterio>=1.3.0",
+    "exactextract>=0.15.0",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
