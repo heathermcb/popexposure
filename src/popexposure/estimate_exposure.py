@@ -8,10 +8,10 @@ using geospatial analysis and gridded population data.
 import geopandas as gpd
 import pandas as pd
 
-from .data_loader import DataReader as dr
-from .geometry_validator import GeometryValidator as gv
-from .geometry_operations import GeometryOperations as go
-from .raster_extraction import RasterExtractor as re
+from utils import reader as rdr
+from utils import geom_validator as gv
+from utils import geom_ops as go
+from utils.mask_raster_partial_pixel import mask_raster_partial_pixel
 
 
 class PopEstimator:
@@ -23,6 +23,19 @@ class PopEstimator:
     oil wells, toxic sites) using gridded population data. The class handles data
     loading, geometry processing, buffering operations, and raster value extraction
     to produce exposure estimates.
+
+    Parameters
+    ----------
+    No parameters required for initialization.
+
+    Attributes
+    ----------
+    hazard_data : geopandas.GeoDataFrame or None
+        Processed hazard data with buffered geometries (set by prep_data)
+    admin_units : geopandas.GeoDataFrame or None
+        Administrative unit geometries (set by prep_data)
+    population : pandas.DataFrame or None
+        Total population by administrative unit (set by est_pop)
 
     Key Features
     ------------
@@ -38,19 +51,6 @@ class PopEstimator:
     1. **Load and clean data** with :meth:`prep_data`
     2. **Calculate exposure** with :meth:`est_exposed_pop`
     3. **Get total administrative unit populations** with :meth:`est_pop` (optional)
-
-    Parameters
-    ----------
-    No parameters required for initialization.
-
-    Attributes
-    ----------
-    hazard_data : geopandas.GeoDataFrame or None
-        Processed hazard data with buffered geometries (set by prep_data)
-    admin_units : geopandas.GeoDataFrame or None
-        Administrative unit geometries (set by prep_data)
-    population : pandas.DataFrame or None
-        Total population by administrative unit (set by est_pop)
 
     Examples
     --------
@@ -183,7 +183,7 @@ class PopEstimator:
             - If the input file is empty or contains no valid geometries, the
             function returns None.
         """
-        shp_df = dr.read_geospatial_file(path_to_data)
+        shp_df = rdr.read_geospatial_file(path_to_data)
         if shp_df.empty:
             return None
 
@@ -335,7 +335,7 @@ class PopEstimator:
         if admin_units is None:
             if not hazard_specific:
                 hazards = go.combine_geometries_by_column(hazards)
-            exposed = re.mask_raster_partial_pixel(hazards, pop_path, stat=stat)
+            exposed = mask_raster_partial_pixel(hazards, pop_path, stat=stat)
             self.exposed = exposed
             return exposed
 
@@ -345,7 +345,7 @@ class PopEstimator:
             intersected_hazards = go.get_geometry_intersections(
                 hazards_gdf=hazards, admin_units_gdf=admin_units
             )
-            exposed = re.mask_raster_partial_pixel(
+            exposed = mask_raster_partial_pixel(
                 intersected_hazards, raster_path=pop_path, stat=stat
             )
             self.exposed = exposed
@@ -388,7 +388,7 @@ class PopEstimator:
             ``population`` column, where each value is the specified statistic
             (sum or mean) of raster values within the corresponding admin unit geometry.
         """
-        residing = re.mask_raster_partial_pixel(
+        residing = mask_raster_partial_pixel(
             admin_units, raster_path=pop_path, stat=stat
         )
         residing = residing.rename(

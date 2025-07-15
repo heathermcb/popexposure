@@ -12,17 +12,14 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    # Core data processing (used in multiple modules)
-    "pandas>=1.3.0",
-    "geopandas>=1.0.1",
-    
-    # Geospatial libraries (used in geometry operations and validation)
-    "shapely>=1.8.0",
-    "pyproj>=3.0.0",
-    
-    # Raster processing (used in raster_extraction.py)
-    "rasterio>=1.3.0",
-    "exactextract>=0.15.0",
+    "pandas",
+    "geopandas==1.0.1",
+    "pathlib",
+    "typing",
+    "shapely",
+    "rasterio",
+    "exactextract",
+    "pyproj",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
