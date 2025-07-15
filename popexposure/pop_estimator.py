@@ -8,10 +8,10 @@ using geospatial analysis and gridded population data.
 import geopandas as gpd
 import pandas as pd
 
-from utils import reader as rdr
-from utils import geom_validator as gv
-from utils import geom_ops as go
-from utils.mask_raster_partial_pixel import mask_raster_partial_pixel
+from .utils import reader as rdr
+from .utils import geom_validator as gv
+from .utils import geom_ops as go
+from .utils.mask_raster_partial_pixel import mask_raster_partial_pixel
 
 
 class PopEstimator:
@@ -396,3 +396,5 @@ class PopEstimator:
         )
         self.population = residing
         return residing
+
+__all__ = ["PopEstimator"]

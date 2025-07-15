@@ -3,4 +3,4 @@
 pip uninstall -y popexposure
 pip install .
 python -c "import popexposure"
-python -c "from popexposure.estimate_exposure import PopEstimator"
+python -c "from popexposure import PopEstimator"

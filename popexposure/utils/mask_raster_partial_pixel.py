@@ -109,3 +109,6 @@ def mask_raster_partial_pixel(
     shp_exposed = shp_df[cols]
 
     return shp_exposed
+
+
+__all__ = ["mask_raster_partial_pixel"]

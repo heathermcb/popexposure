@@ -2,3 +2,5 @@ demo/demo_data
 .DS_Store
 /dist
 /writing
+*.DS_Store
+*.pyc
