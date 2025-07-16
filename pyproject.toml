@@ -27,6 +27,8 @@ shapely = "*"
 rasterio = "*"
 exactextract = "*"
 pyproj = "*"
+pyarrow = "*"
+fastparquet = "*"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
