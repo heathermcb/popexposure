@@ -4,9 +4,10 @@ Population exposure estimation for environmental hazards.
 Main interface for calculating populations exposed to environmental hazards
 using geospatial analysis and gridded population data.
 """
-
+from pathlib import Path
 import geopandas as gpd
 import pandas as pd
+from typing import Literal
 
 from .utils import reader as rdr
 from .utils import geom_validator as gv
@@ -122,103 +123,45 @@ class PopEstimator:
     est_pop : Calculate total population in administrative units
     """
 
-    def __init__(self):
+    def __init__(self, pop_data: str | Path, admin_data: str | Path | gpd.GeoDataFrame | None = None):
         """
         Initialize the PopEstimator class, used to find populations exposed to
         environmental hazards.
-        Init with empty attributes for hazard and admin unit data.
         """
-        self.hazard_data = None
-        self.admin_units = None
-        self.population = None
-        self.exposed = None
-
-    def prep_data(self, path_to_data: str, geo_type: str) -> gpd.GeoDataFrame:
-        """
-        Reads, cleans, and preprocesses geospatial data for exposure analysis.
-
-        This method loads a geospatial file (GeoJSON or GeoParquet) containing
-        either hazard data (e.g., wildfire burn zones, oil wells)
-        or additional administrative geographies (e.g., ZCTAs, census tracts,
-        referred to here as admin units). It makes all geometries valid,
-        removes empty geometries, and, for hazard data, generates buffered
-        geometries for one or more user-specified buffer distances.
-        Buffering is performed in the best Universal Transverse Mercator (UTM)
-        projection based on each geometry's centroid latitude and longitude.
-
-        Parameters
-        ----------
-        path_to_data : str
-            Path to a geospatial data file (.geojson or .parquet). The file must
-            contain either hazard data or administrative geography data, as
-            specified by ``geo_type``.
-            Data must have any coordinate reference system.
-            - Hazard data must contain a string column ``"ID_hazard"`` with
-            unique hazard IDs, a geometry column ``"geometry"``, and one or more
-            numeric columns starting with ``"buffer_dist"`` with unique suffixes
-            (e.g., ``"buffer_dist_main"``, ``"buffer_dist_1000"``) specifying
-            buffer distances in meters. Buffer distances may be 0 or different
-            for each hazard.
-            - For administrative unit data, the file must contain a string column
-            ``"ID_admin_unit"`` with unique admin unit IDs and a geometry column
-            ``"geometry"``.
-        geo_type : str
-            A string indicating the type of data to process. Must be either
-            ``"hazard"`` for environmental hazard data or ``"admin_unit"`` for
-            administrative geography data.
-
-
-        Returns
-        -------
-        geopandas.GeoDataFrame or None
-            A GeoDataFrame with cleaned and valid geometries.
-            - If hazard data was passed, the output contains a column
-            ``"ID_hazard"`` matching the input data, and one or more
-            ``"buffered_hazard"`` geometry columns, with suffixes matching the
-            passed ``buffer_dist`` columns (e.g., ``"buffered_hazard_main"``,
-            ``"buffered_hazard_1000"``).
-            - If admin unit data was passed, the output contains columns
-            ``"ID_admin_unit"`` matching the input data and ``"geometry"``.
-            - Empty geometries are removed.
-            - If the input file is empty or contains no valid geometries, the
-            function returns None.
-        """
-        shp_df = rdr.read_geospatial_file(path_to_data)
-        if shp_df.empty:
-            return None
+        self.pop_data = pop_data
+        self.admin_data = self._process_admin_data(admin_data) if admin_data is not None else None
+    
+    def _process_admin_data(self, data: str | Path | gpd.GeoDataFrame):
+        shp_df = rdr.read_geospatial_file(data) if isinstance(data, (str, Path)) else data.copy()
+        shp_df = gv.remove_missing_geometries(shp_df)
+        shp_df = gv.clean_geometries(shp_df)
+        shp_df = gv.reproject_to_wgs84(shp_df)
+        return shp_df
+        
+    def _process_hazard_data(self, data: str | Path | gpd.GeoDataFrame):
+        shp_df = rdr.read_geospatial_file(data) if isinstance(data, (str, Path)) else data.copy()
 
         shp_df = gv.remove_missing_geometries(shp_df)
         shp_df = gv.clean_geometries(shp_df)
         shp_df = gv.reproject_to_wgs84(shp_df)
 
-        if geo_type == "hazard":
-            shp_df = gv.add_utm_projection_column(shp_df)
-            shp_df = go.add_buffered_geometry_columns(shp_df)
-            buffered_cols = [
-                col for col in shp_df.columns if col.startswith("buffered_hazard")
-            ]
-            cols = ["ID_hazard"] + buffered_cols
-            buffered_hazards = shp_df[cols]
-            buffered_hazards = buffered_hazards.set_geometry(
-                buffered_cols[0], crs="EPSG:4326"
-            )
-            self.hazard_data = buffered_hazards
-            return buffered_hazards
-
-        elif geo_type == "admin_unit":
-            self.admin_units = shp_df
-            return shp_df
-
-        else:
-            raise ValueError("geo_type must be 'hazard' or 'admin_unit'")
+        shp_df = gv.add_utm_projection_column(shp_df)
+        shp_df = go.add_buffered_geometry_columns(shp_df)
+        buffered_cols = [
+            col for col in shp_df.columns if col.startswith("buffered_hazard")
+        ]
+        cols = ["ID_hazard"] + buffered_cols
+        buffered_hazards = shp_df[cols]
+        buffered_hazards = buffered_hazards.set_geometry(
+            buffered_cols[0], crs="EPSG:4326"
+        )
+        return buffered_hazards
 
     def est_exposed_pop(
         self,
-        pop_path: str,
-        hazard_specific: bool,
-        hazards: gpd.GeoDataFrame = None,
-        admin_units: gpd.GeoDataFrame = None,
-        stat: str = "sum",
+        hazard_data: str | Path | gpd.GeoDataFrame,
+        hazard_specific: bool = True,
+        stat: Literal["sum", "mean"] = "sum",
     ) -> pd.DataFrame:
         """
         Estimate the number of people living within a buffer distance of
@@ -324,35 +267,24 @@ class PopEstimator:
            ``exposed`` column per buffered hazard column. If people were close
            to more than one hazard in the hazard set, they are counted once.
         """
+        hazard_data = self._process_hazard_data(hazard_data)
 
-        if hazards is None:
-            hazards = self.hazard_data
-        if admin_units is None:
-            admin_units = self.admin_units
-        if hazards is None:
-            return None
-
-        if admin_units is None:
-            if not hazard_specific:
-                hazards = go.combine_geometries_by_column(hazards)
-            exposed = mask_raster_partial_pixel(hazards, pop_path, stat=stat)
-            self.exposed = exposed
-            return exposed
-
-        else:
-            if not hazard_specific:
-                hazards = go.combine_geometries_by_column(hazards)
-            intersected_hazards = go.get_geometry_intersections(
-                hazards_gdf=hazards, admin_units_gdf=admin_units
+        if not hazard_specific:
+            hazard_data = go.combine_geometries_by_column(hazard_data)
+        
+        if self.admin_data is not None:
+            hazard_data = go.get_geometry_intersections(
+                hazards_gdf=hazard_data, admin_units_gdf=self.admin_data
             )
-            exposed = mask_raster_partial_pixel(
-                intersected_hazards, raster_path=pop_path, stat=stat
-            )
-            self.exposed = exposed
-            return exposed
+        
+        exposed = mask_raster_partial_pixel(
+            hazard_data, raster_path=self.pop_data, stat=stat
+        )
+        
+        return exposed
 
     def est_pop(
-        self, pop_path: str, admin_units: str, stat: str = "sum"
+        self, stat: Literal["sum", "mean"] = "sum"
     ) -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies
@@ -369,13 +301,6 @@ class PopEstimator:
 
         Parameters
         ----------
-        pop_path : str
-            Path to a gridded population raster file, in TIFF format. The raster
-            must have any coordinate reference system.
-        admin_units : geopandas.GeoDataFrame
-            GeoDataFrame containing administrative geography geometries. Must
-            include a string column called ``ID_admin_unit`` with unique admin
-            unit IDs and a geometry column called ``geometry``.
         stat : str, default "sum"
             Statistic to calculate from raster values. Options:
             - "sum": Total population within geometry (default)
@@ -389,12 +314,11 @@ class PopEstimator:
             (sum or mean) of raster values within the corresponding admin unit geometry.
         """
         residing = mask_raster_partial_pixel(
-            admin_units, raster_path=pop_path, stat=stat
+            self.admin_data, raster_path=self.pop_data, stat=stat
         )
         residing = residing.rename(
             columns=lambda c: c.replace("exposedgeometry", "population")
         )
-        self.population = residing
         return residing
 
 __all__ = ["PopEstimator"]

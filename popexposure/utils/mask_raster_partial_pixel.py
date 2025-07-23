@@ -2,10 +2,10 @@ import geopandas as gpd
 import pandas as pd
 import rasterio
 from exactextract import exact_extract
-
+from typing import Literal
 
 def mask_raster_partial_pixel(
-    shp_df: gpd.GeoDataFrame, raster_path: str, stat: str = "sum"
+    shp_df: gpd.GeoDataFrame, raster_path: str, stat: Literal["sum", "mean"] = "sum"
 ) -> gpd.GeoDataFrame:
     """
     Calculate the sum or mean of raster values (e.g., population) within each

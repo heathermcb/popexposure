@@ -121,7 +121,7 @@ def add_buffered_geometry_columns(
 
 def combine_geometries_by_column(
     gdf: gpd.GeoDataFrame,
-    chunk_size: int = 500,
+    chunk_size: int = 500, # TODO: Should chunk size ever be adjusted? Why/why not? If not: remove this parameter and hard code in 500. If yes, need to expose it to user in pop_estimator's est_exposed_pop() method
 ) -> gpd.GeoDataFrame:
     """
     Combine all geometries in columns starting with 'buffered_hazard' into a
