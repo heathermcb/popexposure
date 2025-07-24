@@ -27,36 +27,4 @@ The `PopEstimator` class is the main interface for all population exposure calcu
 ## Data Requirements
 
 ### Input Data Formats
-
-PopExposure accepts several common geospatial formats:
-
-**Raster Data:**
-- GeoTIFF (.tif, .tiff)
-- Other GDAL-supported raster formats
-
-**Vector Data:**
-- GeoJSON (.geojson)
-- Parquet with geometry (.parquet)
-- Shapefile (.shp)
-- Other OGR-supported vector formats
-
-### Coordinate Reference Systems
-
-- Input data should use the same coordinate reference system (CRS)
-- Population rasters should use equal-area projections for accurate area calculations
-- The package will attempt to handle CRS mismatches but results may be less accurate
-
-## Error Handling
-
-PopExposure includes comprehensive error checking for:
-
-- Invalid file paths
-- Mismatched coordinate systems
-- Empty or invalid geometries
-- Insufficient memory for large datasets
-
-Common exceptions:
-
-- `FileNotFoundError`: Input files cannot be found
-- `ValueError`: Invalid parameters or data formats
-- `MemoryError`: Insufficient memory for processing
+[LBW COMMENT: HEATHER, DO WE WANT TO PUT SOMETHING ABOUT THIS HERE? IF SO, HOW EXACTLY DO YOU WANT TO FRAME IT? I KNOW THERE ARE DIFFERENT OPTIONS.]

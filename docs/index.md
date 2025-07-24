@@ -1,5 +1,9 @@
 # popexposure
 
+<div align="center">
+  <img src="assets/modified-logo.png" alt="PopExposure Logo" width="400">
+</div>
+
 `popexposure` is an open-source Python package providing fast, memory-efficient, and consistent estimates of the number of people living near environmental hazards. It enables environmental scientists to assess population-level exposure to environmental hazards based on residential proximity.
 
 !!! info "Methodological Details"
