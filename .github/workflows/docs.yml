@@ -32,12 +32,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/python-poetry-env
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history for proper git info
-
+      - uses: ./.github/actions/python-poetry-env
       - name: Configure Git for mkdocs
         shell: bash -l {0}
         run: |
