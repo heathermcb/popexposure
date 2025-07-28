@@ -49,10 +49,16 @@ extra_css:
   
 plugins:
   - search
+  - mkdocs-jupyter:
+      execute: false
+      include_source: true
+      ignore_h1_titles: true
+      show_input: true
+      show_output: true
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]  # Point to src directory
+          paths: [src]
           options:
             docstring_style: numpy
             show_source: true
@@ -61,9 +67,6 @@ plugins:
             merge_init_into_class: true
             show_signature_annotations: true
             find_stubs_package: true
-  - mkdocs-jupyter:
-      execute: false
-      include_source: true
 
 markdown_extensions:
   - admonition
