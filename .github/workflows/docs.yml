@@ -56,18 +56,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
           pip install -r docs-requirements.txt
-          
-      - name: Configure Git for mkdocs
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
 
       - name: Configure Git for mkdocs
+        shell: bash -l {0}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
 
       - name: Build documentation
+        shell: bash -l {0}
         run: mkdocs build --clean --verbose
 
       - name: Upload artifact
