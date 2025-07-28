@@ -8,10 +8,10 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Quick Start: quickstart.md
-  # - Tutorials:
-  #   - Data Setup: demo/demo_code/01_demo_data_setup.ipynb
-  #   - Example Run: demo/demo_code/02_demo_example_run.ipynb
-  #   - Explore Results: demo/demo_code/03_demo_explore_results.ipynb
+  - Tutorials:
+    - Data Setup: demo/demo_code/01_demo_data_setup.ipynb
+    - Example Run: demo/demo_code/02_demo_example_run.ipynb
+    - Explore Results: demo/demo_code/03_demo_explore_results.ipynb
   - API Reference: api/overview.md
   - Citation: citation.md
 
