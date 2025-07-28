@@ -81,6 +81,22 @@ jobs:
         with:
           path: ./site
 
+      - name: Debug mkdocs-jupyter
+        shell: bash -l {0}
+        run: |
+          echo "=== Python packages ==="
+          pip list | grep -E "(mkdocs|jupyter|nbconvert)"
+          echo "=== Testing notebook rendering ==="
+          python -c "
+          import mkdocs_jupyter
+          import nbconvert
+          print('mkdocs-jupyter version:', mkdocs_jupyter.__version__)
+          print('nbconvert version:', nbconvert.__version__)
+          "
+          echo "=== Checking notebook file ==="
+          ls -la demo/demo_code/01_demo_data_setup.ipynb
+          head -5 demo/demo_code/01_demo_data_setup.ipynb
+
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
