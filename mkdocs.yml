@@ -1,0 +1,85 @@
+site_name: popexposure
+site_description: Open-source Python package to find the number of people residing near environmental hazards quickly and efficiently 
+repo_url: https://github.com/heathermcb/popexposure
+repo_name: heathermcb/popexposure
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - Tutorials:
+    - Data Setup: tutorials/01_demo_data_setup.ipynb
+    - Example Run: tutorials/02_demo_example_run.ipynb
+    - Explore Results: tutorials/03_demo_explore_results.ipynb
+  - API Reference: api/overview.md
+  - Citation: citation.md
+
+theme:
+  name: material
+  logo: assets/modified-logo.png
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: ffd84e
+      accent: ffd84e
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: '#ffd84e'
+      accent: '#ffd84e'
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - stylesheets/extra.css
+  
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]  # Point to src directory
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            merge_init_into_class: true
+            show_signature_annotations: true
+            find_stubs_package: true
+  - mkdocs-jupyter:
+      execute: false
+      include_source: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
