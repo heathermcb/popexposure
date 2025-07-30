@@ -1,5 +1,5 @@
 """
-Unit tests for data_loader module.
+Unit tests for reader.py
 
 Creates test data with good and perverse cases, saves as different file formats,
 and tests reading and validation functionality.
@@ -15,12 +15,12 @@ import sys
 from pathlib import Path
 
 # Add the directory containing the module to Python path
-module_path = Path("/Volumes/squirrel-utopia/popexposure/src/popexposure")
+module_path = Path("/Volumes/squirrel-utopia/popexposure/popexposure/utils")
 sys.path.insert(0, str(module_path))
 
 # Import the module directly
-import data_loader
-from data_loader import DataReader
+#import reader
+from reader import *
 
 
 class TestDataReader:
@@ -176,7 +176,7 @@ class TestDataReader:
 
     def test_read_hazard_geojson(self, test_files):
         """Test reading hazard GeoJSON file."""
-        gdf = DataReader.read_geospatial_file(str(test_files["hazard_geojson"]))
+        gdf = read_geospatial_file(str(test_files["hazard_geojson"]))
 
         assert isinstance(gdf, gpd.GeoDataFrame)
         assert len(gdf) == 5
@@ -186,7 +186,7 @@ class TestDataReader:
 
     def test_read_hazard_parquet(self, test_files):
         """Test reading hazard Parquet file."""
-        gdf = DataReader.read_geospatial_file(str(test_files["hazard_parquet"]))
+        gdf = read_geospatial_file(str(test_files["hazard_parquet"]))
 
         assert isinstance(gdf, gpd.GeoDataFrame)
         assert len(gdf) == 5
@@ -196,7 +196,7 @@ class TestDataReader:
 
     def test_read_admin_geojson(self, test_files):
         """Test reading admin unit GeoJSON file."""
-        gdf = DataReader.read_geospatial_file(str(test_files["admin_geojson"]))
+        gdf = read_geospatial_file(str(test_files["admin_geojson"]))
 
         assert isinstance(gdf, gpd.GeoDataFrame)
         assert len(gdf) == 6
@@ -206,7 +206,7 @@ class TestDataReader:
 
     def test_read_admin_parquet(self, test_files):
         """Test reading admin unit Parquet file."""
-        gdf = DataReader.read_geospatial_file(str(test_files["admin_parquet"]))
+        gdf = read_geospatial_file(str(test_files["admin_parquet"]))
 
         assert isinstance(gdf, gpd.GeoDataFrame)
         assert len(gdf) == 6
@@ -217,19 +217,19 @@ class TestDataReader:
     def test_read_txt_file_fails(self, test_files):
         """Test that reading TXT file raises error."""
         with pytest.raises(FileNotFoundError, match="Unsupported file type"):
-            DataReader.read_geospatial_file(str(test_files["txt_file"]))
+            read_geospatial_file(str(test_files["txt_file"]))
 
     def test_read_blank_file_fails(self, test_files):
         """Test that reading blank file raises error."""
         with pytest.raises(
             Exception
         ):  # Could be various exceptions depending on file format
-            DataReader.read_geospatial_file(str(test_files["blank_file"]))
+            read_geospatial_file(str(test_files["blank_file"]))
 
     def test_read_nonexistent_file_fails(self):
         """Test that reading nonexistent file raises error."""
         with pytest.raises(Exception):
-            DataReader.read_geospatial_file("nonexistent_file.geojson")
+            read_geospatial_file("nonexistent_file.geojson")
 
     # ===========================================
     # HAZARD VALIDATION TESTS
@@ -237,34 +237,34 @@ class TestDataReader:
 
     def test_validate_hazard_columns_correct_columns(self, hazard_test_data):
         """Test hazard validation passes with correct columns."""
-        assert DataReader.validate_hazard_columns(hazard_test_data) == True
+        assert validate_hazard_columns(hazard_test_data) == True
 
     def test_validate_hazard_columns_missing_id_hazard(self, hazard_test_data):
         """Test hazard validation fails when ID_hazard missing."""
         invalid_data = hazard_test_data.drop(columns=["ID_hazard"])
-        assert DataReader.validate_hazard_columns(invalid_data) == False
+        assert validate_hazard_columns(invalid_data) == False
 
     def test_validate_hazard_columns_missing_geometry(self, hazard_test_data):
         """Test hazard validation fails when geometry missing."""
         invalid_data = hazard_test_data.drop(columns=["geometry"])
-        assert DataReader.validate_hazard_columns(invalid_data) == False
+        assert validate_hazard_columns(invalid_data) == False
 
     def test_validate_hazard_columns_missing_buffer_dist(self, hazard_test_data):
         """Test hazard validation fails when no buffer_dist columns."""
         invalid_data = hazard_test_data.drop(
             columns=["buffer_dist_500", "buffer_dist_1000"]
         )
-        assert DataReader.validate_hazard_columns(invalid_data) == False
+        assert validate_hazard_columns(invalid_data) == False
 
     def test_validate_hazard_columns_one_buffer_dist_ok(self, hazard_test_data):
         """Test hazard validation passes with only one buffer_dist column."""
         single_buffer = hazard_test_data.drop(columns=["buffer_dist_1000"])
-        assert DataReader.validate_hazard_columns(single_buffer) == True
+        assert validate_hazard_columns(single_buffer) == True
 
     def test_validate_hazard_columns_empty_dataframe(self):
         """Test hazard validation fails with empty dataframe."""
         empty_gdf = gpd.GeoDataFrame()
-        assert DataReader.validate_hazard_columns(empty_gdf) == False
+        assert validate_hazard_columns(empty_gdf) == False
 
     # ===========================================
     # ADMIN UNIT VALIDATION TESTS
@@ -272,31 +272,31 @@ class TestDataReader:
 
     def test_validate_admin_unit_columns_correct_columns(self, admin_unit_test_data):
         """Test admin unit validation passes with correct columns."""
-        assert DataReader.validate_admin_unit_columns(admin_unit_test_data) == True
+        assert validate_admin_unit_columns(admin_unit_test_data) == True
 
     def test_validate_admin_unit_columns_missing_id_admin_unit(
         self, admin_unit_test_data
     ):
         """Test admin unit validation fails when ID_admin_unit missing."""
         invalid_data = admin_unit_test_data.drop(columns=["ID_admin_unit"])
-        assert DataReader.validate_admin_unit_columns(invalid_data) == False
+        assert validate_admin_unit_columns(invalid_data) == False
 
     def test_validate_admin_unit_columns_missing_geometry(self, admin_unit_test_data):
         """Test admin unit validation fails when geometry missing."""
         invalid_data = admin_unit_test_data.drop(columns=["geometry"])
-        assert DataReader.validate_admin_unit_columns(invalid_data) == False
+        assert validate_admin_unit_columns(invalid_data) == False
 
     def test_validate_admin_unit_columns_empty_dataframe(self):
         """Test admin unit validation fails with empty dataframe."""
         empty_gdf = gpd.GeoDataFrame()
-        assert DataReader.validate_admin_unit_columns(empty_gdf) == False
+        assert validate_admin_unit_columns(empty_gdf) == False
 
     def test_validate_admin_unit_columns_accepts_perverse_geometries(
         self, admin_unit_test_data
     ):
         """Test admin unit validation passes even with non-polygon geometries."""
         # The validation only checks for required columns, not geometry types
-        assert DataReader.validate_admin_unit_columns(admin_unit_test_data) == True
+        assert validate_admin_unit_columns(admin_unit_test_data) == True
 
 
 # Test runner

@@ -33,7 +33,7 @@ def remove_missing_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     >>> len(cleaned)
     2
     """
-    valid_mask = gdf["geometry"].notnull() & ~gdf["geometry"].is_empty
+    valid_mask = gdf.geometry.notnull() & ~gdf.geometry.is_empty
 
     if not valid_mask.all():
         id_col = next(col for col in gdf.columns if "ID" in col)
@@ -80,6 +80,8 @@ def clean_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     True
     """
     gdf = gdf.copy()
+
+    print(gdf)
 
     # Apply make_valid to handle any remaining issues
     gdf["geometry"] = gdf["geometry"].apply(make_valid)
@@ -248,4 +250,10 @@ def add_utm_projection_column(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-__all__ = ["remove_missing_geometries", "clean_geometries", "reproject_to_wgs84", "get_best_utm_projection", "add_utm_projection_column"]
+__all__ = [
+    "remove_missing_geometries",
+    "clean_geometries",
+    "reproject_to_wgs84",
+    "get_best_utm_projection",
+    "add_utm_projection_column",
+]

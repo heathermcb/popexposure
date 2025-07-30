@@ -20,26 +20,11 @@ from shapely.geometry import (
 import sys
 import shutil
 
-
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
-from popexposure.estimate_exposure import PopEstimator
+from popexposure.pop_estimator import PopEstimator
 
 
 class TestPopEstimator:
     """Test cases for PopEstimator methods."""
-
-    @pytest.fixture
-    def pop_estimator(self):
-        """Create a PopEstimator instance for testing."""
-        return PopEstimator()
-
-    @pytest.fixture
-    def temp_dir(self):
-        """Create a temporary directory for test files."""
-        temp_dir = tempfile.mkdtemp()
-        yield temp_dir
-        shutil.rmtree(temp_dir)
 
     @pytest.fixture
     def standard_raster(self, temp_dir):
@@ -64,6 +49,13 @@ class TestPopEstimator:
         ) as dst:
             dst.write(raster_data, 1)
         return raster_path
+
+    @pytest.fixture
+    def temp_dir(self):
+        """Create a temporary directory for test files."""
+        temp_dir = tempfile.mkdtemp()
+        yield temp_dir
+        shutil.rmtree(temp_dir)
 
     @pytest.fixture
     def point_hazards(self):
@@ -133,6 +125,20 @@ class TestPopEstimator:
             crs="EPSG:4326",
         )
 
+    @pytest.fixture
+    def pop_estimator(self, standard_raster, quadrant_admin_units, temp_dir):
+        """Create a PopEstimator instance for testing with required pop and admin data."""
+        # Save admin units to file (GeoJSON)
+        admin_path = os.path.join(temp_dir, "admin.geojson")
+        quadrant_admin_units.to_file(admin_path, driver="GeoJSON")
+        # Pass raster path and admin path to PopEstimator
+        return PopEstimator(pop_data=standard_raster, admin_data=admin_path)
+
+    @pytest.fixture
+    def pop_estimator_no_admin(self, standard_raster):
+        """Create a PopEstimator instance for testing without admin data."""
+        return PopEstimator(pop_data=standard_raster)
+
     def save_gdf(self, gdf, temp_dir, filename):
         """Helper to save GeoDataFrame to file."""
         path = os.path.join(temp_dir, filename)
@@ -140,7 +146,7 @@ class TestPopEstimator:
         return path
 
     def test_prep_data_removes_missing_geometries(self, pop_estimator, temp_dir):
-        """Test prep_data removes null geometries and creates buffered columns."""
+        """Test _process_hazard_data removes null geometries and creates buffered columns."""
         # Create test data with one missing geometry
         hazards = gpd.GeoDataFrame(
             {
@@ -153,7 +159,7 @@ class TestPopEstimator:
         )
 
         path = self.save_gdf(hazards, temp_dir, "hazards.geojson")
-        result = pop_estimator.prep_data(path, "hazard")
+        result = pop_estimator._process_hazard_data(path)
 
         # Should have 1 row (missing geometry removed)
         assert len(result) == 1
@@ -167,15 +173,15 @@ class TestPopEstimator:
         assert result["ID_hazard"].iloc[0] == "point_1"
 
     def test_est_exposed_pop_point_hazards(
-        self, pop_estimator, temp_dir, point_hazards, standard_raster
+        self, pop_estimator_no_admin, temp_dir, point_hazards
     ):
         """Test exposure calculation with point hazards."""
         hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards.geojson")
-        prepared_hazards = pop_estimator.prep_data(hazard_path, "hazard")
 
-        result = pop_estimator.est_exposed_pop(
-            pop_path=standard_raster, hazard_specific=True, hazards=prepared_hazards
+        result = pop_estimator_no_admin.est_exposed_pop(
+            hazard_specific=True, hazard_data=hazard_path
         )
+        print(result)
 
         assert len(result) == 3
         assert set(result.columns) == {"ID_hazard", "exposed_1", "exposed_10"}
@@ -186,9 +192,7 @@ class TestPopEstimator:
             assert abs(row["exposed_1"] - 0.00032) < 0.01
             assert abs(row["exposed_10"] - 0.0032) < 0.01
 
-    def test_est_exposed_pop_with_admin_units(
-        self, pop_estimator, temp_dir, quadrant_admin_units, standard_raster
-    ):
+    def test_est_exposed_pop_with_admin_units(self, pop_estimator, temp_dir):
         """Test exposure calculation with admin units using center point."""
         # Single center point hazard
         center_hazard = gpd.GeoDataFrame(
@@ -200,17 +204,14 @@ class TestPopEstimator:
             crs="EPSG:4326",
         )
 
-        hazard_path = self.save_gdf(center_hazard, temp_dir, "hazard.geojson")
-        admin_path = self.save_gdf(quadrant_admin_units, temp_dir, "admin.geojson")
+        print(center_hazard)
+        center_hazard = center_hazard.set_geometry("geometry")
 
-        prepared_hazards = pop_estimator.prep_data(hazard_path, "hazard")
-        prepared_admin = pop_estimator.prep_data(admin_path, "admin_unit")
+        hazard_path = self.save_gdf(center_hazard, temp_dir, "hazard.geojson")
 
         result = pop_estimator.est_exposed_pop(
-            pop_path=standard_raster,
             hazard_specific=True,
-            hazards=prepared_hazards,
-            admin_units=prepared_admin,
+            hazard_data=hazard_path,
         )
 
         assert len(result) == 4
@@ -232,14 +233,13 @@ class TestPopEstimator:
             ), f"Admin unit {row['ID_admin_unit']} exposure {row['exposed_10']} should be ~{expected_exposure_per_quadrant}"
 
     def test_est_exposed_pop_combined_hazards(
-        self, pop_estimator, temp_dir, point_hazards, standard_raster
+        self, pop_estimator_no_admin, temp_dir, point_hazards
     ):
         """Test hazard_specific=False combines all hazards."""
         hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards.geojson")
-        prepared_hazards = pop_estimator.prep_data(hazard_path, "hazard")
 
-        result = pop_estimator.est_exposed_pop(
-            pop_path=standard_raster, hazard_specific=False, hazards=prepared_hazards
+        result = pop_estimator_no_admin.est_exposed_pop(
+            hazard_specific=False, hazard_data=hazard_path
         )
 
         assert len(result) == 1  # Combined into single row
@@ -255,7 +255,7 @@ class TestPopEstimator:
         assert abs(row["exposed_10"] - 3 * 0.0032) < 0.01
 
     def test_est_exposed_pop_combined_with_admin_units(
-        self, pop_estimator, temp_dir, quadrant_admin_units, standard_raster
+        self, pop_estimator, temp_dir, quadrant_admin_units
     ):
         """Test hazard_specific=False with admin_units."""
         # Create 4 non-overlapping hazards, one per admin unit
@@ -274,16 +274,9 @@ class TestPopEstimator:
         )
 
         hazard_path = self.save_gdf(hazards, temp_dir, "hazards.geojson")
-        admin_path = self.save_gdf(quadrant_admin_units, temp_dir, "admin.geojson")
-
-        prepared_hazards = pop_estimator.prep_data(hazard_path, "hazard")
-        prepared_admin = pop_estimator.prep_data(admin_path, "admin_unit")
 
         result = pop_estimator.est_exposed_pop(
-            pop_path=standard_raster,
-            hazard_specific=False,
-            hazards=prepared_hazards,
-            admin_units=prepared_admin,
+            hazard_specific=False, hazard_data=hazard_path
         )
         assert len(result) == 4  # One row per admin unit
         assert set(result.columns) == {
@@ -341,9 +334,10 @@ class TestPopEstimator:
             dst.write(raster_data, 1)
 
         admin_path = self.save_gdf(admin_units, temp_dir, "admin.geojson")
-        prepared_admin = pop_estimator.prep_data(admin_path, "admin_unit")
 
-        result = pop_estimator.est_pop(pop_path=raster_path, admin_units=prepared_admin)
+        # For this test, we need a new PopEstimator with the new raster and admin units
+        pop_estimator_area = PopEstimator(pop_data=raster_path, admin_data=admin_path)
+        result = pop_estimator_area.est_total_pop()
 
         assert len(result) == 4
         assert set(result.columns) == {"ID_admin_unit", "population"}

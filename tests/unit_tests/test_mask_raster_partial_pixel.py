@@ -26,12 +26,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.colors import LinearSegmentedColormap
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
-from popexposure.raster_extraction import RasterExtractor
-from popexposure.geometry_validator import GeometryValidator
-from popexposure.geometry_operations import GeometryOperations
+from popexposure.utils.geom_validator import *
+from popexposure.utils.geom_ops import *
+from popexposure.utils.mask_raster_partial_pixel import *
 
 
 class TestRasterExtractor:
@@ -167,8 +164,8 @@ class TestRasterExtractor:
         gdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
 
         # Add UTM projections using GeometryValidator
-        gdf = GeometryValidator.add_utm_projection_column(gdf)
-        gdf = GeometryOperations.add_buffered_geometry_columns(gdf)
+        gdf = add_utm_projection_column(gdf)
+        gdf = add_buffered_geometry_columns(gdf)
 
         print(f"\nCreated test geometries:")
         for idx, row in gdf.iterrows():
@@ -300,7 +297,7 @@ class TestRasterExtractor:
         
         # Test the raster extraction
         print(f"\nRunning raster extraction...")
-        result = RasterExtractor.mask_raster_partial_pixel(test_geometries, raster_path)
+        result = mask_raster_partial_pixel(test_geometries, raster_path)
         
         print(f"\nExtraction results:")
         print(result)

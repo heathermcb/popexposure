@@ -20,13 +20,10 @@ from shapely.geometry import (
 import numpy as np
 import sys
 import os
+from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
-from popexposure.geometry_operations import GeometryOperations
-from popexposure.geometry_validator import GeometryValidator
-
+from popexposure.utils.geom_validator import *
+from popexposure.utils.geom_ops import *
 
 class TestGeometryOperationsVisual:
     """Visual tests for geometry operations with plotting and dataframe output."""
@@ -105,7 +102,7 @@ class TestGeometryOperationsVisual:
         gdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
 
         # Add UTM projections using GeometryValidator
-        gdf = GeometryValidator.add_utm_projection_column(gdf)
+        gdf = add_utm_projection_column(gdf)
 
         print("Created hazards dataset:")
         print(gdf)
@@ -123,11 +120,11 @@ class TestGeometryOperationsVisual:
 
         for idx, row in diverse_hazards.iterrows():
             # Buffer with 500m
-            buff_500 = GeometryOperations.get_buffered_geometry(row, "buffer_dist_500")
+            buff_500 = get_buffered_geometry(row, "buffer_dist_500")
             buffered_500.append(buff_500)
 
             # Buffer with 2000m
-            buff_2000 = GeometryOperations.get_buffered_geometry(
+            buff_2000 = get_buffered_geometry(
                 row, "buffer_dist_2000"
             )
             buffered_2000.append(buff_2000)
@@ -177,7 +174,7 @@ class TestGeometryOperationsVisual:
         print("\n=== TESTING BATCH BUFFERING ===")
 
         # Use the batch method
-        buffered_gdf = GeometryOperations.add_buffered_geometry_columns(diverse_hazards)
+        buffered_gdf = add_buffered_geometry_columns(diverse_hazards)
 
         print("Batch buffering results:")
         print(buffered_gdf.columns.tolist())
@@ -249,7 +246,7 @@ class TestGeometryOperationsVisual:
         }
 
         gdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
-        gdf = GeometryValidator.add_utm_projection_column(gdf)
+        gdf = add_utm_projection_column(gdf)
 
         print("Overlapping hazards:")
         print(gdf)
@@ -261,13 +258,13 @@ class TestGeometryOperationsVisual:
         print("\n=== TESTING GEOMETRY COMBINATION ===")
 
         # First buffer the overlapping hazards
-        buffered = GeometryOperations.add_buffered_geometry_columns(overlapping_hazards)
+        buffered = add_buffered_geometry_columns(overlapping_hazards)
 
         print("Buffered overlapping hazards:")
         print(buffered[["ID_hazard"]])
 
         # Combine geometries
-        combined = GeometryOperations.combine_geometries_by_column(buffered)
+        combined = combine_geometries_by_column(buffered)
 
         print("\nCombined geometries result:")
         print(combined)
@@ -373,7 +370,7 @@ class TestGeometryOperationsVisual:
         print("\n=== TESTING GEOMETRY INTERSECTIONS ===")
 
         # First buffer the hazards
-        buffered_hazards = GeometryOperations.add_buffered_geometry_columns(
+        buffered_hazards = add_buffered_geometry_columns(
             overlapping_hazards
         )
 
@@ -381,7 +378,7 @@ class TestGeometryOperationsVisual:
         print(buffered_hazards[["ID_hazard"]])
 
         # Calculate intersections
-        intersections = GeometryOperations.get_geometry_intersections(
+        intersections = get_geometry_intersections(
             buffered_hazards, admin_units
         )
 

@@ -15,12 +15,11 @@ import sys
 from pathlib import Path
 
 # Add the directory containing the module to Python path
-module_path = Path("/Volumes/squirrel-utopia/popexposure/src/popexposure")
+module_path = Path("/Volumes/squirrel-utopia/popexposure/popexposure/utils")
 sys.path.insert(0, str(module_path))
 
 # Import the module directly
-import geometry_validator
-from geometry_validator import GeometryValidator
+from geom_validator import *
 
 
 class TestGeometryValidator:
@@ -68,7 +67,7 @@ class TestGeometryValidator:
         gdf = gpd.GeoDataFrame(data, crs="EPSG:3857")
 
         original_length = len(gdf)
-        cleaned = GeometryValidator.remove_missing_geometries(gdf)
+        cleaned = remove_missing_geometries(gdf)
 
         # Should have fewer rows after removing missing/empty geometries
         assert len(cleaned) < original_length
@@ -142,7 +141,7 @@ class TestGeometryValidator:
         assert not gdf2.geometry.is_valid.all()
 
         # Clean the geometries
-        cleaned_gdf = GeometryValidator.clean_geometries(gdf2)
+        cleaned_gdf = clean_geometries(gdf2)
 
         # All geometries should be valid after cleaning
         assert cleaned_gdf.geometry.is_valid.all()
@@ -163,7 +162,7 @@ class TestGeometryValidator:
         assert gdf.crs != "EPSG:4326"
 
         # Reproject to WGS84
-        wgs84_gdf = GeometryValidator.reproject_to_wgs84(gdf)
+        wgs84_gdf = reproject_to_wgs84(gdf)
 
         # Verify CRS is now WGS84
         assert str(wgs84_gdf.crs) == "EPSG:4326"
@@ -172,7 +171,7 @@ class TestGeometryValidator:
         wgs84_data = gpd.GeoDataFrame(
             {"ID": ["already_wgs84"], "geometry": [Point(-74, 40.7)]}, crs="EPSG:4326"
         )
-        result = GeometryValidator.reproject_to_wgs84(wgs84_data)
+        result = reproject_to_wgs84(wgs84_data)
         assert str(result.crs) == "EPSG:4326"
 
     def test_utm_zones_different_locations(self):
@@ -227,7 +226,7 @@ class TestGeometryValidator:
         gdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
 
         # Add UTM projection columns
-        result = GeometryValidator.add_utm_projection_column(gdf)
+        result = add_utm_projection_column(gdf)
 
         # Get unique UTM projections
         utm_projections = result["utm_projection"].unique()
@@ -256,7 +255,7 @@ class TestGeometryValidator:
         gdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
 
         # Add UTM projection columns
-        result = GeometryValidator.add_utm_projection_column(gdf)
+        result = add_utm_projection_column(gdf)
 
         # Check that new columns were added
         expected_columns = ["ID_hazard", "geometry", "utm_projection"]
@@ -272,13 +271,13 @@ class TestGeometryValidator:
     def test_get_best_utm_projection_specific_locations(self):
         """Test UTM projection calculation for specific known locations."""
         # Test NYC coordinates
-        nyc_utm = GeometryValidator.get_best_utm_projection(40.7128, -74.0060)
+        nyc_utm = get_best_utm_projection(40.7128, -74.0060)
         assert nyc_utm == "EPSG:32618"  # UTM Zone 18N
 
         # Test Sydney coordinates
-        sydney_utm = GeometryValidator.get_best_utm_projection(-33.8688, 151.2093)
+        sydney_utm = get_best_utm_projection(-33.8688, 151.2093)
         assert sydney_utm == "EPSG:32756"  # UTM Zone 56S
 
         # Test London coordinates
-        london_utm = GeometryValidator.get_best_utm_projection(51.5074, -0.1278)
+        london_utm = get_best_utm_projection(51.5074, -0.1278)
         assert london_utm == "EPSG:32630"  # UTM Zone 30N

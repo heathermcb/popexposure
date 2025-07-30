@@ -121,7 +121,6 @@ def add_buffered_geometry_columns(
 
 def combine_geometries_by_column(
     gdf: gpd.GeoDataFrame,
-    chunk_size: int = 500, # TODO: Should chunk size ever be adjusted? Why/why not? If not: remove this parameter and hard code in 500. If yes, need to expose it to user in pop_estimator's est_exposed_pop() method
 ) -> gpd.GeoDataFrame:
     """
     Combine all geometries in columns starting with 'buffered_hazard' into a
@@ -161,6 +160,8 @@ def combine_geometries_by_column(
     >>> len(combined)
     1
     """
+    chunk_size = 500
+
     buffered_cols = [col for col in gdf.columns if col.startswith("buffered_hazard")]
     merged_geoms = {}
     for col in buffered_cols:
@@ -245,4 +246,10 @@ def get_geometry_intersections(
     )
     return intersected_hazards
 
-__all__ = ["get_buffered_geometry", "add_buffered_geometry_columns", "combine_geometries_by_column", "get_geometry_intersections"]
+
+__all__ = [
+    "get_buffered_geometry",
+    "add_buffered_geometry_columns",
+    "combine_geometries_by_column",
+    "get_geometry_intersections",
+]
