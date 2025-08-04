@@ -1,0 +1,23 @@
+name: pop_exp
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.8
+  - gdal>=3.8
+  # Core popexposure dependencies
+  - geopandas
+  - rasterio
+  - pyarrow
+  - tqdm
+  - exactextract
+
+  # Demo notebook dependencies
+  - matplotlib
+  - jupyter
+  - ipykernel
+  - contextily
+
+  # popexposure itself
+  - pip
+  - pip:
+      - popexposure

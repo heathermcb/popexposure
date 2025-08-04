@@ -1,0 +1,11 @@
+exactextract==0.2.2
+geopandas==1.1.1
+matplotlib==3.10.3
+numpy==2.3.1
+pandas==2.3.0
+pyarrow==20.0.0
+pyproj==3.7.1
+pytest==8.4.1
+rasterio==1.4.3
+Shapely==2.1.1
+tqdm==4.67.1
