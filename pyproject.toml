@@ -1,35 +1,58 @@
-[tool.poetry]
+[project]
 name = "popexposure"
-version = "1.0.0.dev13"
+version = "1.0.0.dev14"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
-    "heathermcb <heathermcbrien2.0@gmail.com>",
-    "joanacasey <jcasey@uw.edu>",
-    "nina-flores <nf2497@cumc.columbia.edu>",
-    "lawrence-chillrud <chili@u.northwestern.edu>",
-    "laurenwilner <wilnerl@uw.edu>"
+    {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"},
+    {name = "joanacasey", email = "jcasey@uw.edu"},
+    {name = "nina-flores", email = "nf2497@cumc.columbia.edu"},
+    {name = "lawrence-chillrud", email = "chili@u.northwestern.edu"},
+    {name = "laurenwilner", email = "wilnerl@uw.edu"}
 ]
-readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "geopandas==1.0.1",
+    "scipy==1.14.0",
+    "numpy==2.0.1",
+    "matplotlib",
+    "shapely",
+    "affine",
+    "rasterio",
+    "tqdm",
+    "pyarrow",
+    "exactextract",
+    "pyproj"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
 license = "MIT"
 keywords = ["population", "exposure", "wildfires", "environmental hazards", "climate hazards", "find people exposed"]
-homepage = "https://github.com/heathermcb/popexposure"
-repository = "https://github.com/heathermcb/popexposure"
-documentation = "https://github.com/heathermcb/popexposure#readme"
-packages = [{ include = "popexposure" }]
 
-[tool.poetry.dependencies]
-python = ">=3.11"
-pandas = "*"
-geopandas = "1.0.1"
-pathlib = "*"
-typing = "*"
-shapely = "*"
-rasterio = "*"
-exactextract = "*"
-pyproj = "*"
-pyarrow = "*"
-fastparquet = "*"
+
+
+[tool.poetry]
+packages = [{include = "popexposure", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.6.16"
+mkdocs-jupyter = "^0.25.1"
+mkdocstrings = "^0.30.0"
+mkdocstrings-python = "^1.16.12"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[project.urls]
+Homepage = "https://github.com/heathermcb/popexposure"
+Documentation = "https://github.com/heathermcb/popexposure#readme"
+Source = "https://github.com/heathermcb/popexposure"
