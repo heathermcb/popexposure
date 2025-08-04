@@ -28,7 +28,7 @@ class PopEstimator:
 
     Parameters
     ----------
-    One parameter is required for initialization.
+    One parameter is required for initialization, another is optional.
 
 
     Attributes
@@ -137,9 +137,106 @@ class PopEstimator:
         environmental hazards, with a population raster and optional admin units.
         """
         self.pop_data = pop_data
-        self.admin_data = (
-            self._process_admin_data(admin_data) if admin_data is not None else None
-        )
+        if admin_data is not None:
+            if isinstance(admin_data, gpd.GeoDataFrame) and self._is_admin_data_prepped(
+                admin_data
+            ):
+                self.admin_data = admin_data.copy()
+            else:
+                self.admin_data = self._process_admin_data(admin_data)
+        else:
+            self.admin_data = None
+
+    def _is_admin_data_prepped(self, admin_gdf: gpd.GeoDataFrame) -> bool:
+        """
+        Check if admin data is already prepped and ready to use.
+
+        Prepped admin data should have:
+        - An ID column (column name containing 'ID')
+        - No null/empty geometries
+        - Clean geometries (valid according to Shapely)
+        - WGS84 projection (EPSG:4326)
+
+        Parameters
+        ----------
+        admin_gdf : geopandas.GeoDataFrame
+            Admin data to check
+
+        Returns
+        -------
+        bool
+            True if data is prepped, False otherwise
+        """
+        # Check for ID column
+        id_cols = [col for col in admin_gdf.columns if "ID" in col]
+        if not id_cols:
+            return False
+
+        # Check for valid geometries (no null/empty)
+        if admin_gdf.geometry.isnull().any() or admin_gdf.geometry.is_empty.any():
+            return False
+
+        # Check for WGS84 projection
+        if admin_gdf.crs is None or admin_gdf.crs.to_epsg() != 4326:
+            return False
+
+        # Check for valid geometries (Shapely validity)
+        if not admin_gdf.geometry.is_valid.all():
+            return False
+
+        return True
+
+    def _is_hazard_data_prepped(self, hazard_gdf: gpd.GeoDataFrame) -> bool:
+        """
+        Check if hazard data is already prepped and ready to use.
+
+        Prepped hazard data should have:
+        - An ID_hazard column
+        - No null/empty geometries
+        - Clean geometries (valid according to Shapely)
+        - WGS84 projection (EPSG:4326)
+        - One or more buffered_hazard_* columns
+        - Geometry set to a buffered_hazard column
+
+        Parameters
+        ----------
+        hazard_gdf : geopandas.GeoDataFrame
+            Hazard data to check
+
+        Returns
+        -------
+        bool
+            True if data is prepped, False otherwise
+        """
+        # Check for ID_hazard column
+        if "ID_hazard" not in hazard_gdf.columns:
+            return False
+
+        # Check for buffered_hazard columns
+        buffered_cols = [
+            col for col in hazard_gdf.columns if col.startswith("buffered_hazard")
+        ]
+        if not buffered_cols:
+            return False
+
+        # Check for valid geometries (no null/empty)
+        if hazard_gdf.geometry.isnull().any() or hazard_gdf.geometry.is_empty.any():
+            return False
+
+        # Check for WGS84 projection
+        if hazard_gdf.crs is None or hazard_gdf.crs.to_epsg() != 4326:
+            return False
+
+        # Check for valid geometries (Shapely validity)
+        if not hazard_gdf.geometry.is_valid.all():
+            return False
+
+        # Check that geometry is set to a buffered_hazard column
+        geom_col = hazard_gdf.geometry.name
+        if not geom_col.startswith("buffered_hazard"):
+            return False
+
+        return True
 
     def _process_admin_data(self, data: str | Path | gpd.GeoDataFrame):
         shp_df = (
@@ -281,7 +378,12 @@ class PopEstimator:
            ``exposed`` column per buffered hazard column. If people were close
            to more than one hazard in the hazard set, they are counted once.
         """
-        hazard_data = self._process_hazard_data(hazard_data)
+        if isinstance(hazard_data, gpd.GeoDataFrame) and self._is_hazard_data_prepped(
+            hazard_data
+        ):
+            hazard_data = hazard_data.copy()
+        else:
+            hazard_data = self._process_hazard_data(hazard_data)
 
         if not hazard_specific:
             hazard_data = go.combine_geometries_by_column(hazard_data)

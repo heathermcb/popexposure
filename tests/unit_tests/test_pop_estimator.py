@@ -345,3 +345,381 @@ class TestPopEstimator:
         # Each 10x10 square should have population ≈ 100
         for _, row in result.iterrows():
             assert abs(row["population"] - 100.0) < 10
+
+    def test_is_admin_data_prepped(self, pop_estimator, quadrant_admin_units, temp_dir):
+        """Test _is_admin_data_prepped method with processed and unprocessed data."""
+        # Test with unprocessed data (should return False)
+        unprocessed_admin = quadrant_admin_units.copy()
+        # Change CRS to make it unprocessed
+        unprocessed_admin = unprocessed_admin.to_crs("EPSG:3857")
+        assert not pop_estimator._is_admin_data_prepped(unprocessed_admin)
+
+        # Test with data missing ID column (should return False)
+        no_id_admin = quadrant_admin_units.copy()
+        no_id_admin = no_id_admin.rename(columns={"ID_admin_unit": "name"})
+        assert not pop_estimator._is_admin_data_prepped(no_id_admin)
+
+        # Test with processed data (should return True)
+        processed_admin = pop_estimator._process_admin_data(quadrant_admin_units)
+        assert pop_estimator._is_admin_data_prepped(processed_admin)
+
+        # Test with null geometries (should return False)
+        null_geom_admin = quadrant_admin_units.copy()
+        null_geom_admin.loc[0, "geometry"] = None
+        assert not pop_estimator._is_admin_data_prepped(null_geom_admin)
+
+    def test_is_hazard_data_prepped(self, pop_estimator, point_hazards, temp_dir):
+        """Test _is_hazard_data_prepped method with processed and unprocessed data."""
+        # Test with unprocessed data (should return False)
+        unprocessed_hazards = point_hazards.copy()
+        assert not pop_estimator._is_hazard_data_prepped(unprocessed_hazards)
+
+        # Test with data missing ID_hazard column (should return False)
+        no_id_hazards = point_hazards.copy()
+        no_id_hazards = no_id_hazards.rename(columns={"ID_hazard": "name"})
+        assert not pop_estimator._is_hazard_data_prepped(no_id_hazards)
+
+        # Test with processed data (should return True)
+        processed_hazards = pop_estimator._process_hazard_data(point_hazards)
+        assert pop_estimator._is_hazard_data_prepped(processed_hazards)
+
+        # Test with wrong CRS (should return False)
+        wrong_crs_hazards = processed_hazards.copy()
+        wrong_crs_hazards = wrong_crs_hazards.to_crs("EPSG:3857")
+        assert not pop_estimator._is_hazard_data_prepped(wrong_crs_hazards)
+
+        # Test with missing buffered columns (should return False)
+        no_buffer_hazards = point_hazards.copy()
+        no_buffer_hazards = no_buffer_hazards[["ID_hazard", "geometry"]]
+        assert not pop_estimator._is_hazard_data_prepped(no_buffer_hazards)
+
+        # Test with geometry not set to buffered column (should return False)
+        wrong_geom_hazards = processed_hazards.copy()
+        # Create a dummy geometry column with valid geometries but wrong name
+        wrong_geom_hazards["dummy_geom"] = wrong_geom_hazards.geometry
+        wrong_geom_hazards = wrong_geom_hazards.set_geometry("dummy_geom")
+        assert not pop_estimator._is_hazard_data_prepped(wrong_geom_hazards)
+
+    def test_est_exposed_pop_with_prepped_data(
+        self, pop_estimator, point_hazards, temp_dir
+    ):
+        """Test that est_exposed_pop works with both prepped and unprepped hazard data."""
+        # Test with unprocessed data (file path)
+        hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards.geojson")
+        result_unprocessed = pop_estimator.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=True
+        )
+
+        # Test with prepped GeoDataFrame
+        processed_hazards = pop_estimator._process_hazard_data(point_hazards)
+        result_prepped = pop_estimator.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=True
+        )
+
+        # Results should be identical
+        assert len(result_unprocessed) == len(result_prepped)
+        assert set(result_unprocessed.columns) == set(result_prepped.columns)
+
+        # Sort both dataframes by ID_hazard for comparison
+        result_unprocessed = result_unprocessed.sort_values("ID_hazard").reset_index(
+            drop=True
+        )
+        result_prepped = result_prepped.sort_values("ID_hazard").reset_index(drop=True)
+
+        # Compare values (allowing for small floating point differences)
+        for col in result_unprocessed.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:  # Skip string columns
+                assert np.allclose(
+                    result_unprocessed[col], result_prepped[col], rtol=1e-10
+                )
+            else:
+                assert result_unprocessed[col].equals(result_prepped[col])
+
+    def test_constructor_with_prepped_admin_data(
+        self, standard_raster, quadrant_admin_units, temp_dir
+    ):
+        """Test that constructor works with both prepped and unprepped admin data."""
+        # Create estimator with file path (unprocessed)
+        admin_path = self.save_gdf(quadrant_admin_units, temp_dir, "admin.geojson")
+        estimator_file = PopEstimator(pop_data=standard_raster, admin_data=admin_path)
+
+        # Create estimator with prepped GeoDataFrame
+        processed_admin = PopEstimator(pop_data=standard_raster)._process_admin_data(
+            quadrant_admin_units
+        )
+        estimator_prepped = PopEstimator(
+            pop_data=standard_raster, admin_data=processed_admin
+        )
+
+        # Both should have admin_data with same content
+        assert estimator_file.admin_data is not None
+        assert estimator_prepped.admin_data is not None
+        assert len(estimator_file.admin_data) == len(estimator_prepped.admin_data)
+        assert set(estimator_file.admin_data.columns) == set(
+            estimator_prepped.admin_data.columns
+        )
+
+        # Test that both work for exposure calculation
+        test_hazard = gpd.GeoDataFrame(
+            {
+                "ID_hazard": ["test"],
+                "buffer_dist_10": [10],
+                "geometry": [Point(-121.5, 37.5)],
+            },
+            crs="EPSG:4326",
+        )
+
+        result_file = estimator_file.est_exposed_pop(
+            hazard_data=test_hazard, hazard_specific=True
+        )
+        result_prepped = estimator_prepped.est_exposed_pop(
+            hazard_data=test_hazard, hazard_specific=True
+        )
+
+        # Results should be identical
+        assert len(result_file) == len(result_prepped)
+        for col in result_file.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:  # Skip string columns
+                assert np.allclose(result_file[col], result_prepped[col], rtol=1e-10)
+
+    def test_est_exposed_pop_prepped_vs_unprepped_comprehensive(
+        self, pop_estimator, point_hazards, temp_dir
+    ):
+        """Test est_exposed_pop with prepped vs unprepped data across different scenarios."""
+        # Test scenario 1: hazard_specific=True
+        hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards1.geojson")
+        processed_hazards = pop_estimator._process_hazard_data(point_hazards)
+
+        result_unprocessed_specific = pop_estimator.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=True
+        )
+        result_prepped_specific = pop_estimator.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=True
+        )
+
+        # Sort both by ID columns for comparison
+        result_unprocessed_specific = result_unprocessed_specific.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+        result_prepped_specific = result_prepped_specific.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+
+        assert len(result_unprocessed_specific) == len(result_prepped_specific)
+        assert set(result_unprocessed_specific.columns) == set(
+            result_prepped_specific.columns
+        )
+
+        # Compare numeric columns
+        for col in result_unprocessed_specific.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:
+                assert np.allclose(
+                    result_unprocessed_specific[col],
+                    result_prepped_specific[col],
+                    rtol=1e-10,
+                ), f"Column {col} differs between prepped and unprepped data"
+
+        # Test scenario 2: hazard_specific=False
+        result_unprocessed_combined = pop_estimator.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=False
+        )
+        result_prepped_combined = pop_estimator.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=False
+        )
+
+        # Sort both by ID columns for comparison
+        result_unprocessed_combined = result_unprocessed_combined.sort_values(
+            ["ID_admin_unit"]
+        ).reset_index(drop=True)
+        result_prepped_combined = result_prepped_combined.sort_values(
+            ["ID_admin_unit"]
+        ).reset_index(drop=True)
+
+        assert len(result_unprocessed_combined) == len(result_prepped_combined)
+        assert set(result_unprocessed_combined.columns) == set(
+            result_prepped_combined.columns
+        )
+
+        # Compare numeric columns
+        for col in result_unprocessed_combined.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:
+                assert np.allclose(
+                    result_unprocessed_combined[col],
+                    result_prepped_combined[col],
+                    rtol=1e-10,
+                ), f"Column {col} differs between prepped and unprepped data in combined mode"
+
+    def test_est_exposed_pop_prepped_vs_unprepped_no_admin(
+        self, pop_estimator_no_admin, point_hazards, temp_dir
+    ):
+        """Test est_exposed_pop with prepped vs unprepped data without admin units."""
+        hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards2.geojson")
+        processed_hazards = pop_estimator_no_admin._process_hazard_data(point_hazards)
+
+        # Test scenario 1: hazard_specific=True, no admin
+        result_unprocessed_specific = pop_estimator_no_admin.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=True
+        )
+        result_prepped_specific = pop_estimator_no_admin.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=True
+        )
+
+        # Sort both by ID_hazard for comparison
+        result_unprocessed_specific = result_unprocessed_specific.sort_values(
+            "ID_hazard"
+        ).reset_index(drop=True)
+        result_prepped_specific = result_prepped_specific.sort_values(
+            "ID_hazard"
+        ).reset_index(drop=True)
+
+        assert len(result_unprocessed_specific) == len(result_prepped_specific)
+        assert set(result_unprocessed_specific.columns) == set(
+            result_prepped_specific.columns
+        )
+
+        for col in result_unprocessed_specific.columns:
+            if col != "ID_hazard":
+                assert np.allclose(
+                    result_unprocessed_specific[col],
+                    result_prepped_specific[col],
+                    rtol=1e-10,
+                )
+
+        # Test scenario 2: hazard_specific=False, no admin
+        result_unprocessed_combined = pop_estimator_no_admin.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=False
+        )
+        result_prepped_combined = pop_estimator_no_admin.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=False
+        )
+
+        assert len(result_unprocessed_combined) == len(result_prepped_combined) == 1
+        assert set(result_unprocessed_combined.columns) == set(
+            result_prepped_combined.columns
+        )
+
+        for col in result_unprocessed_combined.columns:
+            if col != "ID_hazard":
+                assert np.allclose(
+                    result_unprocessed_combined[col],
+                    result_prepped_combined[col],
+                    rtol=1e-10,
+                )
+
+    def test_est_total_pop_prepped_vs_unprepped_admin(
+        self, standard_raster, quadrant_admin_units, temp_dir
+    ):
+        """Test est_total_pop with prepped vs unprepped admin data."""
+        # Create estimator with unprepped admin data (file path)
+        admin_path = self.save_gdf(
+            quadrant_admin_units, temp_dir, "admin_total.geojson"
+        )
+        estimator_unprepped = PopEstimator(
+            pop_data=standard_raster, admin_data=admin_path
+        )
+
+        # Create estimator with prepped admin data
+        processed_admin = PopEstimator(pop_data=standard_raster)._process_admin_data(
+            quadrant_admin_units
+        )
+        estimator_prepped = PopEstimator(
+            pop_data=standard_raster, admin_data=processed_admin
+        )
+
+        # Test with default stat="sum"
+        result_unprepped_sum = estimator_unprepped.est_total_pop()
+        result_prepped_sum = estimator_prepped.est_total_pop()
+
+        # Sort both by ID_admin_unit for comparison
+        result_unprepped_sum = result_unprepped_sum.sort_values(
+            "ID_admin_unit"
+        ).reset_index(drop=True)
+        result_prepped_sum = result_prepped_sum.sort_values(
+            "ID_admin_unit"
+        ).reset_index(drop=True)
+
+        assert len(result_unprepped_sum) == len(result_prepped_sum)
+        assert set(result_unprepped_sum.columns) == set(result_prepped_sum.columns)
+        assert set(result_unprepped_sum.columns) == {"ID_admin_unit", "population"}
+
+        # Compare population values
+        assert np.allclose(
+            result_unprepped_sum["population"],
+            result_prepped_sum["population"],
+            rtol=1e-10,
+        ), "Population values differ between prepped and unprepped admin data"
+
+        # Verify ID_admin_unit values are the same
+        assert result_unprepped_sum["ID_admin_unit"].equals(
+            result_prepped_sum["ID_admin_unit"]
+        ), "ID_admin_unit values differ between prepped and unprepped admin data"
+
+        # Test with stat="mean"
+        result_unprepped_mean = estimator_unprepped.est_total_pop(stat="mean")
+        result_prepped_mean = estimator_prepped.est_total_pop(stat="mean")
+
+        # Sort both by ID_admin_unit for comparison
+        result_unprepped_mean = result_unprepped_mean.sort_values(
+            "ID_admin_unit"
+        ).reset_index(drop=True)
+        result_prepped_mean = result_prepped_mean.sort_values(
+            "ID_admin_unit"
+        ).reset_index(drop=True)
+
+        assert len(result_unprepped_mean) == len(result_prepped_mean)
+        assert np.allclose(
+            result_unprepped_mean["population"],
+            result_prepped_mean["population"],
+            rtol=1e-10,
+        ), "Mean population values differ between prepped and unprepped admin data"
+
+    def test_est_exposed_pop_different_stats_prepped_vs_unprepped(
+        self, pop_estimator, point_hazards, temp_dir
+    ):
+        """Test est_exposed_pop with different stat parameters using prepped vs unprepped data."""
+        hazard_path = self.save_gdf(point_hazards, temp_dir, "hazards_stats.geojson")
+        processed_hazards = pop_estimator._process_hazard_data(point_hazards)
+
+        # Test with stat="sum"
+        result_unprepped_sum = pop_estimator.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=True, stat="sum"
+        )
+        result_prepped_sum = pop_estimator.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=True, stat="sum"
+        )
+
+        # Sort both for comparison
+        result_unprepped_sum = result_unprepped_sum.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+        result_prepped_sum = result_prepped_sum.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+
+        for col in result_unprepped_sum.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:
+                assert np.allclose(
+                    result_unprepped_sum[col], result_prepped_sum[col], rtol=1e-10
+                ), f"Sum stat column {col} differs between prepped and unprepped data"
+
+        # Test with stat="mean"
+        result_unprepped_mean = pop_estimator.est_exposed_pop(
+            hazard_data=hazard_path, hazard_specific=True, stat="mean"
+        )
+        result_prepped_mean = pop_estimator.est_exposed_pop(
+            hazard_data=processed_hazards, hazard_specific=True, stat="mean"
+        )
+
+        # Sort both for comparison
+        result_unprepped_mean = result_unprepped_mean.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+        result_prepped_mean = result_prepped_mean.sort_values(
+            ["ID_hazard", "ID_admin_unit"]
+        ).reset_index(drop=True)
+
+        for col in result_unprepped_mean.columns:
+            if col not in ["ID_hazard", "ID_admin_unit"]:
+                assert np.allclose(
+                    result_unprepped_mean[col], result_prepped_mean[col], rtol=1e-10
+                ), f"Mean stat column {col} differs between prepped and unprepped data"
