@@ -7,25 +7,23 @@
 `popexposure` is an open-source Python package providing fast, memory-efficient, and consistent estimates of the number of people living near environmental hazards. It enables environmental scientists to assess population-level exposure to environmental hazards based on residential proximity.
 
 !!! info "Methodological Details"
-    For comprehensive methodological details, see [McBrien et al (2025)]().
+For comprehensive methodological details, see [McBrien et al (2025)]().
 
 ## Why `popexposure`?
 
 Environmental epidemiologists often assess exposure to hazards using residential proximity (i.e., they consider an individual exposed if they live near a hazard). This computation presents technical difficulties, and different research teams usually apply their own solution. We developed an open-source Python package, popexposure, which quickly, efficiently, and consistently estimates the number of people living near environmental hazards. [LBW COMMENT: heather, i took this from the manuscript, feel free to edit]
 
 - **Quick**: Optimized for processing large, fine-scale spatial datasets (e.g., exposure to oil and gas wells, which total millions of exposure points in the US) or datasets that cover a large area (e.g., national or global analyses of exposure)
-- **Memory-efficient**: [LBW COMMENT: we never actually say how we did this in the paper -- heather, i will let you write in here what you want, and i think prob worth adding a sentence or two to the paper about this.]
+- **Memory-efficient**: Only the necessary chunks of large population raster data are processed, avoiding loading the raster into memory.
 - **Consistent**: `popexposure` implements a standardized methodology to ensure results are reproducible both within and across research teams.
-- **Flexible**: `popexposure` can estimate the number of people exposesd to any type of hazard and according to any administrative boundary. 
-
+- **Flexible**: `popexposure` can estimate the number of people exposesd to any type of hazard and according to any administrative boundary.
 
 ## Available functions
 
-| Function      | Overview                                                                 | Inputs                                                                                                      | Outputs                                                         |
-| ------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `prep_data`   | Reads, cleans, and preprocesses geospatial hazard or admin unit data by removing empty or missing geometries, and buffering hazard data according to user-passed buffer distances    | Path to hazard or administrative unit file (`.geojson` or `.parquet`), `geo_type` (`"hazard"` or `"admin_unit"`) | Cleaned `GeoDataFrame` with valid geometries                    |
-| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a raster | Population raster path (`.tif`), hazard data, `hazard_specific` (bool), optional administrative units              | DataFrame with exposed population counts by hazard/administrative unit |
-| `est_pop`         | Estimates total population in admin geographies using a raster           | Population raster path (`.tif`), administrative unit data (`GeoDataFrame`)                                         | DataFrame with total population per administrative unit                |
+| Function | Overview | Inputs | Outputs |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | |
+| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a raster | Population raster path (`.tif`), hazard data, `hazard_specific` (bool), optional administrative units | DataFrame with exposed population counts by hazard/administrative unit |
+| `est_total_pop` | Estimates total population in admin geographies using a raster | Population raster path (`.tif`), administrative unit data (`GeoDataFrame`) | DataFrame with total population per administrative unit |
 
 <!-- ## What's Next?
 

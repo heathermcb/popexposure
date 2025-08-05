@@ -12,19 +12,23 @@ The `PopEstimator` class is the main interface for all population exposure calcu
 
 #### Key Methods
 
-- **`prep_data()`**: Prepare and clean geospatial data
-- **`est_exposed_pop()`**: Calculate population exposure to hazards  
-- **`est_pop()`**: Estimate total population in administrative areas
+- **`est_exposed_pop()`**: Calculate population exposure to hazards
+- **`est_total_pop()`**: Estimate total population in administrative areas
 
 ### Function Reference
 
-::: popexposure.find_exposure.PopEstimator.prep_data
+::: popexposure.find_exposure.PopEstimator.est_exposed_pop
 
-::: popexposure.find_exposure.PopEstimator.exposed_pop
-
-::: popexposure.find_exposure.PopEstimator.pop
+::: popexposure.find_exposure.PopEstimator.est_total_pop
 
 ## Data Requirements
 
 ### Input Data Formats
-[LBW COMMENT: HEATHER, DO WE WANT TO PUT SOMETHING ABOUT THIS HERE? IF SO, HOW EXACTLY DO YOU WANT TO FRAME IT? I KNOW THERE ARE DIFFERENT OPTIONS.]
+
+**Data Requirements:**
+
+    - **Hazard data**: GeoJSON or GeoParquet, must contain string ``ID_hazard`` column with unique hazard IDs, ``buffer_dist_*`` numeric columns, and ``geometry`` column with geometry objects.
+    - **Admin units**: GeoJSON or GeoParquet, must contain string ``ID_admin_unit``  column with unique admin IDs, and ``geometry`` column column with geometry objects.
+    - **Population raster**: Any CRS supported
+
+See tutorials and API docs for more detailed information on data requirements.
