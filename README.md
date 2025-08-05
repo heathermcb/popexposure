@@ -7,6 +7,7 @@
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-black?logo=github)](https://github.com/heathermcb/popexposure)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 [![PyPI version](https://badge.fury.io/py/popexposure.svg)](https://badge.fury.io/py/popexposure)
 
 ## Overview
@@ -80,11 +81,11 @@ exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
 
 ## Available functions
 
-| Function      | Overview                                                                 | Inputs                                                                                                      | Outputs                                                         |
-| ------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `prep_data`   | Reads, cleans, and preprocesses geospatial hazard or admin unit data by removing empty or missing geometries, and buffering hazard data according to user-passed buffer distances    | Path to hazard or administrative unit file (`.geojson` or `.parquet`), `geo_type` (`"hazard"` or `"admin_unit"`) | Cleaned `GeoDataFrame` with valid geometries                    |
-| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a raster | Population raster path (`.tif`), hazard data, `hazard_specific` (bool), optional administrative units              | DataFrame with exposed population counts by hazard/administrative unit |
-| `est_pop`         | Estimates total population in admin geographies using a raster           | Population raster path (`.tif`), administrative unit data (`GeoDataFrame`)                                         | DataFrame with total population per administrative unit                |
+| Function          | Overview                                                                                                                                                                          | Inputs                                                                                                           | Outputs                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `prep_data`       | Reads, cleans, and preprocesses geospatial hazard or admin unit data by removing empty or missing geometries, and buffering hazard data according to user-passed buffer distances | Path to hazard or administrative unit file (`.geojson` or `.parquet`), `geo_type` (`"hazard"` or `"admin_unit"`) | Cleaned `GeoDataFrame` with valid geometries                           |
+| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a raster                                                                                                          | Population raster path (`.tif`), hazard data, `hazard_specific` (bool), optional administrative units            | DataFrame with exposed population counts by hazard/administrative unit |
+| `est_pop`         | Estimates total population in admin geographies using a raster                                                                                                                    | Population raster path (`.tif`), administrative unit data (`GeoDataFrame`)                                       | DataFrame with total population per administrative unit                |
 
 ## Getting help and contributing
 
