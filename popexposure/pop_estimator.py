@@ -28,17 +28,32 @@ class PopEstimator:
 
     Parameters
     ----------
-    One parameter is required for initialization, another is optional.
+    pop_data : str or pathlib.Path
+        Path to the population raster file. Any raster format supported by
+        rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
+        any coordinate reference system.
+    admin_data : str, pathlib.Path, geopandas.GeoDataFrame, or None, optional
+        Administrative unit boundaries for breaking down exposure estimates.
+        Can be:
+        - File path (str or Path) to vector data (GeoJSON, Shapefile, GeoParquet, etc.)
+        - Preprocessed GeoDataFrame with admin boundaries
+        - None (default) for exposure estimates without administrative breakdowns
 
+        If provided as a file path or unprocessed GeoDataFrame, the data must contain:
+        - A string column with "ID" in the name for unique admin unit identifiers
+        - A geometry column with valid geometric objects
+
+        The data will be automatically processed (cleaned, reprojected to WGS84).
+        If provided as a preprocessed GeoDataFrame that meets all requirements,
+        processing will be skipped for better performance.
 
     Attributes
     ----------
-    hazard_data : geopandas.GeoDataFrame or None
-        Processed hazard data with buffered geometries (set by prep_data)
-    admin_units : geopandas.GeoDataFrame or None
-        Administrative unit geometries (set by prep_data)
-    population : pandas.DataFrame or None
-        Total population by administrative unit (set by est_total_pop)
+    pop_data : str or pathlib.Path
+        Path to the population raster file used for exposure calculations.
+    admin_data : geopandas.GeoDataFrame or None
+        Administrative unit geometries (set by constructor if admin_data is provided).
+        Contains processed admin boundaries with ID column and valid geometries in WGS84.
 
     Key Features
     ------------
@@ -105,9 +120,9 @@ class PopEstimator:
     -----
     **Data Requirements:**
 
-    - **Hazard data**: Must contain ``ID_hazard`` column ``buffer_dist_*`` columns, and ``geometry`` column
-    - **Admin units**: Must contain ``ID_admin_unit`` column and ``geometry`` column
-    - **Population raster**: Any CRS supported
+    - **Hazard data**: `GeoJSON` or `GeoParquet`, must contain string ``ID_hazard`` column with unique hazard IDs, ``buffer_dist_*`` numeric columns, and ``geometry`` column with geometry objects.
+    - **Admin units**: `GeoJSON` or `GeoParquet`, must contain string ``ID_admin_unit`` column with unique admin IDs, and ``geometry`` column with geometry objects.
+    - **Population raster**: Any format supported by rasterio with any CRS.
 
     **Buffer Distance Naming:**
 
@@ -123,8 +138,8 @@ class PopEstimator:
 
     See Also
     --------
-    est_exposed_pop : Calculate population exposure to hazards
-    est_total_pop : Calculate total population in administrative units
+    - est_exposed_pop : Calculate population exposure to hazards
+    - est_total_pop : Calculate total population in administrative units
     """
 
     def __init__(
@@ -319,24 +334,26 @@ class PopEstimator:
         -------
         pandas.DataFrame
             A DataFrame with the following columns:
-            - ``ID_hazard``: Always included.
-            - ``ID_admin_unit``: Included only if admin units were provided.
-            - One or more ``exposed`` columns: Each corresponds to a buffered
-            hazard column (e.g., if the input had columns ``buffered_hazard_10``,
-            ``buffered_hazard_100``, and ``buffered_hazard_1000``, the output
-            will have ``exposed_10``, ``exposed_100``, and ``exposed_1000``).
-            Each ``exposed`` column contains the statistic (sum or mean) of raster
-            values (population) within the relevant buffered hazard geometry or
-            buffered hazard geometry and admin unit intersection.
+
+            - `ID_hazard`: Always included.
+            - `ID_admin_unit`: Included only if admin units were provided.
+            - One or more `exposed` columns: Each corresponds to a buffered
+              hazard column (e.g., if the input had columns `buffered_hazard_10`,
+              `buffered_hazard_100`, and `buffered_hazard_1000`, the output
+              will have `exposed_10`, `exposed_100`, and `exposed_1000`).
+              Each `exposed` column contains the statistic (sum or mean) of raster
+              values (population) within the relevant buffered hazard geometry or
+              buffered hazard geometry and admin unit intersection.
 
             The number of rows in the output DataFrame depends on the method
             arguments:
-            - If ``hazard_specific`` is True, the DataFrame contains one row per
-            hazard or per hazard-admin unit pair, if admin units are provided.
-            - If ``hazard_specific`` is False, the DataFrame contains a single
-            row or one row per admin unit, if admin units are provided, with
-            each ``exposed`` column representing the total population in the
-            union of all buffered hazard geometries in that buffered hazard column.
+
+            - If `hazard_specific` is True, the DataFrame contains one row per
+              hazard or per hazard-admin unit pair, if admin units are provided.
+            - If `hazard_specific` is False, the DataFrame contains a single
+              row or one row per admin unit, if admin units are provided, with
+              each `exposed` column representing the total population in the
+              union of all buffered hazard geometries in that buffered hazard column.
 
         Notes
         -----

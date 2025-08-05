@@ -1,34 +1,20 @@
 # API Reference
 
-PopExposure provides a simple, consistent API for population exposure analysis. The main entry point is the `PopEstimator` class.
+**popexposure** provides simple, consistent methods for population exposure analysis. Users can access this through the `PopEstimator` class, which provides methods that prepare data and perform exposure estimation.
 
-## Core Classes and Functions
+**Key Methods**
 
-### PopEstimator Class
-
-::: popexposure.find_exposure.PopEstimator
-
-The `PopEstimator` class is the main interface for all population exposure calculations. It provides methods for data preparation and exposure estimation.
-
-#### Key Methods
-
-- **`est_exposed_pop()`**: Calculate population exposure to hazards
-- **`est_total_pop()`**: Estimate total population in administrative areas
-
-### Function Reference
-
-::: popexposure.find_exposure.PopEstimator.est_exposed_pop
-
-::: popexposure.find_exposure.PopEstimator.est_total_pop
-
-## Data Requirements
-
-### Input Data Formats
+- **`est_exposed_pop()`**: Calculate population exposure to hazards.
+- **`est_total_pop()`**: Estimate total population in administrative areas.
 
 **Data Requirements:**
 
-    - **Hazard data**: GeoJSON or GeoParquet, must contain string ``ID_hazard`` column with unique hazard IDs, ``buffer_dist_*`` numeric columns, and ``geometry`` column with geometry objects.
-    - **Admin units**: GeoJSON or GeoParquet, must contain string ``ID_admin_unit``  column with unique admin IDs, and ``geometry`` column column with geometry objects.
-    - **Population raster**: Any CRS supported
+- **Hazard data**: `GeoJSON` or `GeoParquet`, must contain string `ID_hazard` column with unique hazard IDs, `buffer_dist_*` numeric columns, and `geometry` column with geometry objects.
 
-See tutorials and API docs for more detailed information on data requirements.
+- **Admin units**: `GeoJSON` or `GeoParquet`, must contain string `ID_admin_unit` column with unique admin IDs, and `geometry` column with geometry objects.
+
+- **Population raster**: Any format supported by rasterio with any CRS.
+
+See tutorials and API docs below for more detailed information on data requirements and examples.
+
+::: popexposure.pop_estimator.PopEstimator

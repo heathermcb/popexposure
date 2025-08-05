@@ -1,5 +1,5 @@
 site_name: popexposure
-site_description: Open-source Python package to find the number of people residing near environmental hazards quickly and efficiently 
+site_description: Open-source Python package to find the number of people residing near environmental hazards quickly and efficiently
 repo_url: https://github.com/heathermcb/popexposure
 repo_name: heathermcb/popexposure
 edit_uri: edit/main/docs/
@@ -9,9 +9,9 @@ nav:
   - Installation: installation.md
   - Quick Start: quickstart.md
   - Tutorials:
-    - Data Setup: tutorials/01_demo_data_setup.ipynb
-    - Example Run: tutorials/02_demo_example_run.ipynb
-    - Explore Results: tutorials/03_demo_explore_results.ipynb
+      - Data Setup: tutorials/01_demo_data_setup.ipynb
+      - Example Run: tutorials/02_demo_example_run.ipynb
+      - Explore Results: tutorials/03_demo_explore_results.ipynb
   - API Reference: api/overview.md
   - Citation: citation.md
 
@@ -28,8 +28,8 @@ theme:
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
-      primary: '#ffd84e'
-      accent: '#ffd84e'
+      primary: "#ffd84e"
+      accent: "#ffd84e"
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -46,7 +46,7 @@ theme:
 
 extra_css:
   - stylesheets/extra.css
-  
+
 plugins:
   - search
   - mkdocs-jupyter:
@@ -58,7 +58,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]
+          paths: [.]
           options:
             docstring_style: numpy
             show_source: true

@@ -36,9 +36,11 @@ license = "MIT"
 keywords = ["population", "exposure", "wildfires", "environmental hazards", "climate hazards", "find people exposed"]
 
 
+readme = "README.md"
 
 [tool.poetry]
-packages = [{include = "popexposure", from = "src"}]
+packages = [{include = "popexposure"}]
+
 
 
 [tool.poetry.group.dev.dependencies]
