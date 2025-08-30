@@ -1,6 +1,6 @@
 [project]
 name = "popexposure"
-version = "1.0.0.dev14"
+version = "1.0.0.dev16"
 description = "A package for finding the number of people residing near environmental hazards"
 authors = [
     {name = "heathermcb",email = "heathermcbrien2.0@gmail.com"},
@@ -13,7 +13,7 @@ requires-python = ">=3.11"
 dependencies = [
     "pandas",
     "geopandas==1.0.1",
-    "scipy==1.14.0",
+    "scipy >=1.10,<1.15",
     "numpy==2.0.1",
     "matplotlib",
     "shapely",
@@ -33,7 +33,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 license = "MIT"
-keywords = ["population", "exposure", "wildfires", "environmental hazards", "climate hazards", "find people exposed"]
+keywords = ["population", "exposure", "wildfires", "environmental", "hazards", "climate", "exposed"]
 
 
 readme = "README.md"
