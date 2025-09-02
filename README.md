@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="docs/assets/modified-logo.png" alt="" width="120"/>
+  <img src="docs/assets/popexposure_logo.png" alt="" width="120"/>
 </p>
 
 ## popexposure: Functions to estimate the number of people living near environmental hazards
@@ -76,11 +76,11 @@ exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
 
 ## Available methods
 
-| Function          | Overview                                                                                  | Inputs                                                                                  | Outputs                                                       |
-| ----------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `PopEstimator`    | Main class for estimating population exposure; initializes with population and admin data | `pop_data` (raster path), `admin_data` (GeoJSON or shapefile path)                      | PopEstimator object                                           |
-| `est_exposed_pop` | Estimates number of people living within a specified distance of hazards                  | `hazards` (GeoJSON/shapefile), `hazard_specific` (bool), optional buffer distance, etc. | DataFrame with exposed population counts by hazard/admin unit |
-| `est_total_pop`   | Estimates total population in administrative units                                        | None (uses data provided at initialization)                                             | DataFrame with total population per administrative unit       |
+| Function          | Overview                                                                                           | Inputs                                                             | Outputs                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `PopEstimator`    | Main class for estimating population exposure; initializes with population and optional admin data | `pop_data` (raster path), `admin_data` (GeoJSON or shapefile path) | PopEstimator object                                           |
+| `est_exposed_pop` | Estimates number of people living within a specified distance of hazards                           | `hazards` (GeoJSON/shapefile), `hazard_specific` (bool)            | DataFrame with exposed population counts by hazard/admin unit |
+| `est_total_pop`   | Estimates total population in administrative units                                                 | None (uses data provided at initialization)                        | DataFrame with total population per administrative unit       |
 
 ## Getting help and contributing
 
