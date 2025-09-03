@@ -17,7 +17,7 @@ nav:
 
 theme:
   name: material
-  logo: assets/modified-logo.png
+  logo: assets/popexposure_logo.png
   palette:
     # Palette toggle for light mode
     - scheme: default
