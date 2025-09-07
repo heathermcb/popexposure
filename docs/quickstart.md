@@ -1,8 +1,16 @@
 ## Quickstart
 
 ```python
+import glob
 import pandas as pd
-from popexposure import PopEstimator
+import popexposure as ex
+
+# Set paths
+my_pop_raster_path = "my_pop_raster.tif"
+admin_units_path = "my_admin_units.geojson"
+
+# Instantiate estimator
+pop_est = ex.PopEstimator(pop_data = my_pop_raster_path, admin_data= my_admin_units.geojson)
 
 # List of years and corresponding hazard file paths
 years = [2016, 2017, 2018]
@@ -11,14 +19,6 @@ hazard_paths = [
     "hazard_2017.geojson",
     "hazard_2018.geojson"
 ]
-pop_path = "my_pop_raster.tif"
-admin_units_path = "my_admin_units.geojson"
-
-# Instantiate estimator with population data and admin units
-pop_est = PopEstimator(
-    pop_data=pop_path,
-    admin_data=admin_units_path
-)
 
 # Find total num ppl residing <= 10km of each hazard in each year
 exposed_list = []
@@ -26,8 +26,8 @@ exposed_list = []
 for year, hazard_path in zip(years, hazard_paths):
     # Estimate exposed population
     exposed = pop_est.est_exposed_pop(
-        hazard_data=hazard_path,
-        hazard_specific=False  # set to True if you want per-hazard results
+        hazard_specific=False,  # set to True if you want per-hazard results
+        hazards=hazard_path,
     )
     exposed['year'] = year
     exposed_list.append(exposed)

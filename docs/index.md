@@ -20,16 +20,19 @@ Environmental epidemiologists often assess exposure to hazards using residential
 
 ### Available functions
 
-| Function          | Overview                                                                 | Inputs                                                           | Outputs                                                                  |
-| ----------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a raster | Hazard data, `hazard_specific` (bool), optional `stat` parameter | `DataFrame` with exposed population counts by hazard/administrative unit |
-| `est_total_pop`   | Estimates total population in admin geographies using a raster           | No additional inputs (uses data from constructor)                | `DataFrame` with total population per administrative unit                |
+## Available methods
+
+| Function          | Overview                                                                                  | Inputs                                                                                      | Outputs                                                       |
+| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `PopEstimator`    | Main class for estimating population exposure; initializes with population and admin data | `pop_data` (raster path), `admin_data` (GeoJSON/shapefile/GeoDataFrame, optional)           | PopEstimator object                                           |
+| `est_exposed_pop` | Estimates number of people living within hazard buffer(s) using a population raster       | `hazard_data` (GeoJSON/shapefile/GeoDataFrame), `hazard_specific` (bool), `stat` (optional) | DataFrame with exposed population counts by hazard/admin unit |
+| `est_total_pop`   | Estimates total population in administrative geographies using a population raster        | `stat` (optional, default `"sum"`)                                                          | DataFrame with total population per administrative unit       |
 
 ### What's Next?
 
 - **[Installation](installation.md)** - Get PopExposure installed and ready to use
 - **[Quick Start](quickstart.md)** - Learn the basics with a step-by-step tutorial
-- **[Tutorials](tutorials/01_demo_data_setup.ipynb)** - Explore real-world examples and advanced use cases
+- **[Tutorials](tutorials/01_purpose_and_data_setup.ipynb)** - Explore real-world examples and advanced use cases
 - **[API Reference](api/overview.md)** - Detailed documentation for all functions and classes
 
 ### Getting help and contributing
