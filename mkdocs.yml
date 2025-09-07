@@ -9,7 +9,7 @@ nav:
   - Installation: installation.md
   - Quick Start: quickstart.md
   - Tutorials:
-      - Data Setup: tutorials/01_demo_data_setup.ipynb
+      - Data Setup: tutorials/01_purpose_and_data_setup.ipynb
       - Example Run: tutorials/02_demo_example_run.ipynb
       - Explore Results: tutorials/03_demo_explore_results.ipynb
   - API Reference: api/overview.md
