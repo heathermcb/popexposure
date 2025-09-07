@@ -32,7 +32,7 @@ Environmental epidemiologists often assess exposure to hazards using residential
 
 - **[Installation](installation.md)** - Get PopExposure installed and ready to use
 - **[Quick Start](quickstart.md)** - Learn the basics with a step-by-step tutorial
-- **[Tutorials](tutorials/01_purpose_and_data_setup.ipynb)** - Explore real-world examples and advanced use cases
+- **[Tutorials](docs/tutorials/01_purpose_and_data_setup.ipynb)** - Explore real-world examples and advanced use cases
 - **[API Reference](api/overview.md)** - Detailed documentation for all functions and classes
 
 ### Getting help and contributing
