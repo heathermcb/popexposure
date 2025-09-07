@@ -1,7 +1,7 @@
 # popexposure
 
 <div align="center">
-  <img src="assets/popexposure_logo.png" alt="PopExposure Logo" width="200">
+  <img src="assets/popexposure_logo.png" alt="PopExposure Logo: The whole logo is a blue circle, and at the bottom it says 'popexposure' in white text. Above that, a yellow triangle is superimposed on a grid of nine white dots, representing a hazard and people being exposed to that hazard." width="200">
 </div>
 
 `popexposure` is an open-source Python package providing fast, memory-efficient, and consistent estimates of the number of people living near environmental hazards. It enables environmental scientists to assess population-level exposure to environmental hazards based on residential proximity.
@@ -37,7 +37,7 @@ Environmental epidemiologists often assess exposure to hazards using residential
 
 ### Getting help and contributing
 
-If you have any questions, a feature request, or would like to report a bug, please [open an issue](https://github.com/heathermcb/Pop_Exp/issues). We also welcome any new contributions and ideas. If you want to add code, please submit a [pull request](https://github.com/heathermcb/Pop_Exp/pulls) and we will get back to you when we can. Thanks!
+If you have any questions, a feature request, or would like to report a bug, please [open an issue](https://github.com/heathermcb/popexposure/issues). We also welcome any new contributions and ideas. If you want to add code, please submit a [pull request](https://github.com/heathermcb/popexposure/pulls) and we will get back to you when we can. Thanks!
 
 ### Citing this package
 
