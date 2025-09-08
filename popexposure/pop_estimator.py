@@ -153,6 +153,8 @@ class PopEstimator:
         """
         if pop_data is not None:
             self.pop_data = pop_data
+        else:
+            self.pop_data = None
         if admin_data is not None:
             if isinstance(admin_data, gpd.GeoDataFrame) and self._is_admin_data_prepped(
                 admin_data
