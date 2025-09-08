@@ -81,8 +81,6 @@ def clean_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     gdf = gdf.copy()
 
-    print(gdf)
-
     # Apply make_valid to handle any remaining issues
     gdf["geometry"] = gdf["geometry"].apply(make_valid)
 

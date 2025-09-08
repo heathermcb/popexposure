@@ -28,7 +28,7 @@ class PopEstimator:
 
     Parameters
     ----------
-    pop_data : str or pathlib.Path
+    pop_data : str or pathlib.Path or None, optional
         Path to the population raster file. Any raster format supported by
         rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
         any coordinate reference system.
@@ -144,14 +144,15 @@ class PopEstimator:
 
     def __init__(
         self,
-        pop_data: str | Path,
+        pop_data: str | Path | None = None,
         admin_data: str | Path | gpd.GeoDataFrame | None = None,
     ):
         """
         Initialize the PopEstimator class, used to find populations exposed to
         environmental hazards, with a population raster and optional admin units.
         """
-        self.pop_data = pop_data
+        if pop_data is not None:
+            self.pop_data = pop_data
         if admin_data is not None:
             if isinstance(admin_data, gpd.GeoDataFrame) and self._is_admin_data_prepped(
                 admin_data
@@ -292,6 +293,7 @@ class PopEstimator:
         hazard_data: str | Path | gpd.GeoDataFrame,
         hazard_specific: bool = True,
         stat: Literal["sum", "mean"] = "sum",
+        pop_data: str | Path | None = None,
     ) -> pd.DataFrame:
         """
         Estimate the number of people living within a buffer distance of
@@ -307,7 +309,10 @@ class PopEstimator:
         as specified by the buffered hazard columns in the input data. If
         administrative units were supplied when initializing the class, results
         are further broken down by these geographies (e.g., census tracts or
-        ZIP codes). At least one buffered hazard column must be present in the
+        ZIP codes). If population data was supplied when initalizing the class,
+        those pop data are used, even if the user supplies additional pop data.
+        Otherwise, the user can supply population data.
+        At least one buffered hazard column must be present in the
         hazard data; additional columns allow for exposure estimates at multiple
         distances.
 
@@ -325,6 +330,10 @@ class PopEstimator:
             containing buffered hazard geometries. ``buffered_hazard`` columns
             must each have a unique suffix (e.g., ``buffered_hazard_10``,
             ``buffered_hazard_100``, ``buffered_hazard_1000``).
+        pop_data : str or pathlib.Path or None, optional
+            Path to the population raster file. Any raster format supported by
+            rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
+            any coordinate reference system.
         stat : str, default "sum"
             Statistic to calculate from raster values. Options:
             - "sum": Total population within geometry (default)
@@ -409,14 +418,20 @@ class PopEstimator:
             hazard_data = go.get_geometry_intersections(
                 hazards_gdf=hazard_data, admin_units_gdf=self.admin_data
             )
+        if self.pop_data is not None:
+            pop_data_to_use = self.pop_data
+        else:
+            pop_data_to_use = pop_data
 
         exposed = mask_raster_partial_pixel(
-            hazard_data, raster_path=self.pop_data, stat=stat
+            hazard_data, raster_path=pop_data_to_use, stat=stat
         )
 
         return exposed
 
-    def est_total_pop(self, stat: Literal["sum", "mean"] = "sum") -> pd.DataFrame:
+    def est_total_pop(
+        self, pop_data: str | Path | None = None, stat: Literal["sum", "mean"] = "sum"
+    ) -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies
         using a gridded population raster.
@@ -428,7 +443,10 @@ class PopEstimator:
         in each administrative geography, allowing the user to compute the
         percentage of people exposed to hazards in each admin unit. ``est_total_pop``
         calculates the sum of raster values within the boundaries of each
-        administrative geography geometry provided.
+        administrative geography geometry provided. If population data was
+        supplied when initalizing the class, those pop data are used, even if
+        the user supplies additional pop data. Otherwise, the user can supply
+        population data.
 
         Parameters
         ----------
@@ -436,6 +454,10 @@ class PopEstimator:
             Statistic to calculate from raster values. Options:
             - "sum": Total population within geometry (default)
             - "mean": Average raster value within geometry
+        pop_data : str or pathlib.Path or None, optional
+            Path to the population raster file. Any raster format supported by
+            rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
+            any coordinate reference system.
 
         Returns
         -------
@@ -444,8 +466,13 @@ class PopEstimator:
             ``population`` column, where each value is the specified statistic
             (sum or mean) of raster values within the corresponding admin unit geometry.
         """
+        if self.pop_data is not None:
+            pop_data_to_use = self.pop_data
+        else:
+            pop_data_to_use = pop_data
+
         residing = mask_raster_partial_pixel(
-            self.admin_data, raster_path=self.pop_data, stat=stat
+            self.admin_data, raster_path=pop_data_to_use, stat=stat
         )
         residing = residing.rename(
             columns=lambda c: c.replace("exposedgeometry", "population")
