@@ -19,28 +19,27 @@ echo "└── docs/tutorials"
 echo "  ├── 01_raw_data"
 echo "  ├── 02_interim_data"
 echo "  └── 03_results"
-mkdir -p tutorials/demo_data
-mkdir -p tutorials/demo_data/01_raw_data
-mkdir -p tutorials/demo_data/02_interim_data
-mkdir -p tutorials/demo_data/03_results
+mkdir -p docs/tutorials/demo_data
+mkdir -p docs/tutorials/demo_data/01_raw_data
+mkdir -p docs/tutorials/demo_data/02_interim_data
+mkdir -p docs/tutorials/demo_data/03_results
 printf "✅ Done!\n\n"
 
 # Download datasets
 echo "⏳ Step 2️⃣ /4️⃣ : Downloading US wildfire data..."
-curl -L -o tutorials/demo_data/01_raw_data/wfbz_disasters_conus.geojson https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DWILBW#
-echo "Saved to tutorials/demo_data/01_raw_data/wfbz_disasters_conus.geojson"
+curl -L -o docs/tutorials/demo_data/01_raw_data/wfbz_disasters_2000-2025.geojson https://dataverse.harvard.edu/api/access/datafile/12017566
 printf "✅ Done! The corresponding description for this dataset can be found at: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DWILBW \n\n"
 
 echo "⏳ Step 3️⃣ /4️⃣ : Downloading 2020 US ZCTA shapefile..."
-curl -L -o tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip https://www2.census.gov/geo/tiger/TIGER2020/ZCTA520/tl_2020_us_zcta520.zip
-unzip -o tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip -d tutorials/demo_data/01_raw_data/tl_2020_us_zcta520
-rm tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip
+curl -L -o docs/tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip https://www2.census.gov/geo/tiger/TIGER2020/ZCTA520/tl_2020_us_zcta520.zip
+unzip -o docs/tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip -d docs/tutorials/demo_data/01_raw_data/tl_2020_us_zcta520
+rm docs/tutorials/demo_data/01_raw_data/tl_2020_us_zcta520.zip
 printf "✅ Done! The corresponding description for this dataset can be found at: https://www.census.gov/programs-surveys/geography/guidance/geo-areas/zctas.html \n\n"
 
 echo "⏳ Step 4️⃣ /4️⃣ : Downloading 2020 California residential population data at 100 m resolution..."
-curl -L -o tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2020_GLOBE_R2023A_54009_100/V1-0/tiles/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip
-unzip -o tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip -d tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8
-rm tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip
+curl -L -o docs/tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2020_GLOBE_R2023A_54009_100/V1-0/tiles/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip
+unzip -o docs/tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip -d docs/tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8
+rm docs/tutorials/demo_data/01_raw_data/GHS_POP_E2020_GLOBE_R2023A_54009_100_V1_0_R5_C8.zip
 printf "✅ Done! The corresponding description for this dataset can be found at: https://human-settlement.emergency.copernicus.eu/download.php?ds=pop \n\n"
 
 echo "✅ Completed tutorials/demo_code/00_download_data.sh!"
