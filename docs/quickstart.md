@@ -1,38 +1,29 @@
 ## Quickstart
 
 ```python
-import glob
-import pandas as pd
 import popexposure as ex
+import geopandas as gpd
+import pandas as pd
 
 # Set paths
-my_pop_raster_path = "my_pop_raster.tif"
-admin_units_path = "my_admin_units.geojson"
+my_pop_raster_path = "path/to/my_pop_raster.tif"
+my_admin_units_path = "path/to/my_admin_units.geojson"
+my_hazard_data_path = "path/to/my_hazards.geojson"
+
+# Read in hazard data and define buffer(s) of interest (in meters)
+hazard_gdf = gpd.read_file(my_hazard_data_path)
+hazard_gdf["buffer_dist_0km"] = 0
+hazard_gdf["buffer_dist_10km"] = 10_000
+hazard_gdf["buffer_dist_20km"] = 20_000
 
 # Instantiate estimator
-pop_est = ex.PopEstimator(pop_data = my_pop_raster_path, admin_data= my_admin_units.geojson)
+pop_est = ex.PopEstimator(pop_data=my_pop_raster_path, admin_data=my_admin_units_path)
 
-# List of years and corresponding hazard file paths
-years = [2016, 2017, 2018]
-hazard_paths = [
-    "hazard_2016.geojson",
-    "hazard_2017.geojson",
-    "hazard_2018.geojson"
-]
-
-# Find total num ppl residing <= 10km of each hazard in each year
-exposed_list = []
-
-for year, hazard_path in zip(years, hazard_paths):
-    # Estimate exposed population
-    exposed = pop_est.est_exposed_pop(
-        hazard_specific=False,  # set to True if you want per-hazard results
-        hazards=hazard_path,
-    )
-    exposed['year'] = year
-    exposed_list.append(exposed)
-
-exposed_df = pd.concat(exposed_list, axis=0)
+# Find total num ppl residing <= 0, 10, 20km of each hazard in the hazard_gdf
+exposed_df = pop_est.est_exposed_pop(
+    hazard_data=hazard_gdf,  # can also pass in a filepath here, assuming it has necessary columns
+    hazard_specific=False,   # set to True if you need per-hazard results, False for cumulative exposure
+)
 
 # Save output
 exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
