@@ -5,3 +5,4 @@ docs/tutorials/demo_data
 *.DS_Store
 *.pyc
 *.dat
+.vscode
