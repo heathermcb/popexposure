@@ -25,136 +25,130 @@ class PopEstimator:
     oil wells, toxic sites) using gridded population data. The class handles data
     loading, geometry processing, buffering operations, and raster value extraction
     to produce exposure estimates.
-
-    Parameters
-    ----------
-    pop_data : str or pathlib.Path or None, optional
-        Path to the population raster file. Any raster format supported by
-        rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
-        any coordinate reference system.
-    admin_data : str, pathlib.Path, geopandas.GeoDataFrame, or None, optional
-        Administrative unit boundaries for breaking down exposure estimates.
-        Can be:
-        - File path (str or Path) to vector data (GeoJSON, Shapefile, GeoParquet, etc.)
-        - Preprocessed GeoDataFrame with admin boundaries
-        - None (default) for exposure estimates without administrative breakdowns
-
-        If provided as a file path or unprocessed GeoDataFrame, the data must contain:
-        - A string column with "ID" in the name for unique admin unit identifiers
-        - A geometry column with valid geometric objects
-
-        The data will be automatically processed (cleaned, reprojected to WGS84).
-        If provided as a preprocessed GeoDataFrame that meets all requirements,
-        processing will be skipped for better performance.
-
-    Attributes
-    ----------
-    pop_data : str or pathlib.Path
-        Path to the population raster file used for exposure calculations.
-    admin_data : geopandas.GeoDataFrame or None
-        Administrative unit geometries (set by constructor if admin_data is provided).
-        Contains processed admin boundaries with ID column and valid geometries in WGS84.
-
-    Key Features
-    ------------
-    - **Flexible hazard data**: Works with point, line, polygon, multipolygon, or geometry collection hazards.
-    - **Multiple buffer distances**: Calculate exposure at different distances simultaneously.
-    - **Administrative breakdowns**: Get exposure counts by census tracts, ZIP codes, etc.
-    - **Hazard-specific or combined estimates**: Choose individual hazard impacts or cumulative exposure (see est_exposed_pop).
-    - **Automatic geometry processing**: Handles CRS transformations, invalid geometries, and projections seamlessly.
-    - **Partial pixel extraction**: Uses area-weighted raster sampling for accurate population counts.
-
-    Workflow
-    --------
-    1. **Construct an estimator containing population and administrative data.
-    2. **Calculate exposure** with :meth:`est_exposed_pop`.
-    3. **Get total administrative unit populations** with :meth:`est_total_pop` (optional).
-
-    Examples
-    --------
-    Basic exposure analysis without admin data:
-
-    >>> import popexposure
-    >>>
-    >>> # Initialize with only population raster (no admin data)
-    >>> estimator = PopEstimator(
-    ...     pop_data="data/population.tif"
-    ... )
-    >>> # Estimate population exposure to hazards (e.g., wildfires)
-    >>> exposure = estimator.est_exposed_pop(
-    ...     hazard_data="data/wildfire_perimeters.geojson",
-    ...     hazard_specific=True
-    ... )
-    >>> print(exposure.head())
-    ID_hazard  exposed_500  exposed_1000
-    0   fire_001        1234          2345
-    1   fire_002         567           890
-
-
-    Exposure analysis with admin data:
-
-    >>> import popexposure
-    >>> # Initialize with population raster and admin boundaries
-    >>> estimator = PopEstimator(
-    ...     pop_data="data/population.tif",
-    ...     admin_data="data/admin_units.geojson"
-    ... )
-    >>> # Estimate population exposure to hazards (e.g., wildfires)
-    >>> exposure = estimator.est_exposed_pop(
-    ...     hazard_data="data/wildfire_perimeters.geojson",
-    ...     hazard_specific=True
-    ... )
-    >>> print(exposure.head())
-    ID_hazard  ID_admin_unit  exposed_500  exposed_1000
-    0   fire_001         06001        1234          2345
-    1   fire_002         06013         567           890
-
-    >>> # Estimate total population in each admin unit
-    >>> total_pop = estimator.est_total_pop()
-    >>> print(total_pop.head())
-    ID_admin_unit  population
-    0         06001      100000
-    1         06013      150000
-
-    Notes
-    -----
-    **Data Requirements:**
-
-    - **Hazard data**: `GeoJSON` or `GeoParquet`, must contain string ``ID_hazard`` column with unique hazard IDs, ``buffer_dist_*`` numeric columns, and ``geometry`` column with geometry objects.
-    - **Admin units**: `GeoJSON` or `GeoParquet`, must contain string ``ID_admin_unit`` column with unique admin IDs, and ``geometry`` column with geometry objects.
-    - **Population raster**: Any format supported by rasterio with any CRS.
-
-    **Buffer Distance Naming:**
-
-    - Column ``buffer_dist_500`` creates ``buffered_hazard_500`` and ``exposed_500``
-    - Column ``buffer_dist_main`` creates ``buffered_hazard_main`` and ``exposed_main``
-    - Distances are in meters and can vary by hazard
-
-    **Coordinate Reference Systems:**
-
-    - Input data can use any CRS
-    - Buffering uses optimal UTM projections for accuracy
-    - Population raster CRS is automatically handled
-
-    See Also
-    --------
-    - est_exposed_pop : Calculate population exposure to hazards
-    - est_total_pop : Calculate total population in administrative units
     """
 
     def __init__(
         self,
-        pop_data: str | Path | None = None,
+        pop_data: str | Path,
         admin_data: str | Path | gpd.GeoDataFrame | None = None,
     ):
         """
-        Initialize the PopEstimator class, used to find populations exposed to
-        environmental hazards, with a population raster and optional admin units.
+        Estimate population exposure to environmental hazards using geospatial analysis.
+
+        PopEstimator provides a complete workflow for calculating how many people live
+        within specified buffer distances of environmental hazards (e.g., wildfires,
+        oil wells, toxic sites) using gridded population data. The class handles data
+        loading, geometry processing, buffering operations, and raster value extraction
+        to produce exposure estimates.
+
+        Parameters
+        ----------
+        pop_data : str or pathlib.Path
+            Path to the population raster file. Any raster format supported by
+            rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
+            any coordinate reference system.
+        admin_data : str, pathlib.Path, geopandas.GeoDataFrame, or None, optional
+            Administrative unit boundaries for breaking down exposure estimates.
+            Can be:
+            - File path (str or Path) to vector data (GeoJSON, Shapefile, GeoParquet, etc.)
+            - Preprocessed GeoDataFrame with admin boundaries
+            - None (default) for exposure estimates without administrative breakdowns
+
+            If provided as a file path or unprocessed GeoDataFrame, the data must contain:
+            - A string column with "ID" in the name for unique admin unit identifiers
+            - A geometry column with valid geometric objects
+
+            The data will be automatically processed (cleaned, reprojected to WGS84).
+            If provided as a preprocessed GeoDataFrame that meets all requirements,
+            processing will be skipped for better performance.
+
+        Key Features
+        ------------
+        - **Flexible hazard data**: Works with point, line, polygon, multipolygon, or geometry collection hazards.
+        - **Multiple buffer distances**: Calculate exposure at different distances simultaneously.
+        - **Administrative breakdowns**: Get exposure counts by census tracts, ZIP codes, etc.
+        - **Hazard-specific or combined estimates**: Choose individual hazard impacts or cumulative exposure (see est_exposed_pop).
+        - **Automatic geometry processing**: Handles CRS transformations, invalid geometries, and projections seamlessly.
+        - **Partial pixel extraction**: Uses area-weighted raster sampling for accurate population counts.
+
+        Workflow
+        --------
+        1. **Construct an estimator containing population and administrative data.
+        2. **Calculate exposure** with :meth:`est_exposed_pop`.
+        3. **Get total administrative unit populations** with :meth:`est_total_pop` (optional).
+
+        Examples
+        --------
+        Basic exposure analysis without admin data:
+
+        >>> import popexposure
+        >>>
+        >>> # Initialize with only population raster (no admin data)
+        >>> estimator = PopEstimator(
+        ...     pop_data="data/population.tif"
+        ... )
+        >>> # Estimate population exposure to hazards (e.g., wildfires)
+        >>> exposure = estimator.est_exposed_pop(
+        ...     hazard_data="data/wildfire_perimeters.geojson",
+        ...     hazard_specific=True
+        ... )
+        >>> print(exposure.head())
+        ID_hazard  exposed_500  exposed_1000
+        0   fire_001        1234          2345
+        1   fire_002         567           890
+
+
+        Exposure analysis with admin data:
+
+        >>> import popexposure
+        >>> # Initialize with population raster and admin boundaries
+        >>> estimator = PopEstimator(
+        ...     pop_data="data/population.tif",
+        ...     admin_data="data/admin_units.geojson"
+        ... )
+        >>> # Estimate population exposure to hazards (e.g., wildfires)
+        >>> exposure = estimator.est_exposed_pop(
+        ...     hazard_data="data/wildfire_perimeters.geojson",
+        ...     hazard_specific=True
+        ... )
+        >>> print(exposure.head())
+        ID_hazard  ID_admin_unit  exposed_500  exposed_1000
+        0   fire_001         06001        1234          2345
+        1   fire_002         06013         567           890
+
+        >>> # Estimate total population in each admin unit
+        >>> total_pop = estimator.est_total_pop()
+        >>> print(total_pop.head())
+        ID_admin_unit  population
+        0         06001      100000
+        1         06013      150000
+
+        Notes
+        -----
+        **Data Requirements:**
+
+        - **Hazard data**: `GeoJSON` or `GeoParquet`, must contain string ``ID_hazard`` column with unique hazard IDs, ``buffer_dist_*`` numeric columns, and ``geometry`` column with geometry objects.
+        - **Admin units**: `GeoJSON` or `GeoParquet`, must contain string ``ID_admin_unit`` column with unique admin IDs, and ``geometry`` column with geometry objects.
+        - **Population raster**: Any format supported by rasterio with any CRS.
+
+        **Buffer Distance Naming:**
+
+        - Column ``buffer_dist_500`` creates ``buffered_hazard_500`` and ``exposed_500``
+        - Column ``buffer_dist_main`` creates ``buffered_hazard_main`` and ``exposed_main``
+        - Distances are in meters and can vary by hazard
+
+        **Coordinate Reference Systems:**
+
+        - Input data can use any CRS
+        - Buffering uses optimal UTM projections for accuracy
+        - Population raster CRS is automatically handled
+
+        See Also
+        --------
+        - est_exposed_pop : Calculate population exposure to hazards
+        - est_total_pop : Calculate total population in administrative units
         """
-        if pop_data is not None:
-            self.pop_data = pop_data
-        else:
-            self.pop_data = None
+        self.pop_data = pop_data
         if admin_data is not None:
             if isinstance(admin_data, gpd.GeoDataFrame) and self._is_admin_data_prepped(
                 admin_data
@@ -295,7 +289,6 @@ class PopEstimator:
         hazard_data: str | Path | gpd.GeoDataFrame,
         hazard_specific: bool = True,
         stat: Literal["sum", "mean"] = "sum",
-        pop_data: str | Path | None = None,
     ) -> pd.DataFrame:
         """
         Estimate the number of people living within a buffer distance of
@@ -309,18 +302,14 @@ class PopEstimator:
         counts (population exposed to any hazard, without double counting).
         Exposure can be estimated for multiple buffer distances simultaneously,
         as specified by the buffered hazard columns in the input data. If
-        administrative units were supplied when initializing the class, results
+        the ``admin_data`` attribute is not None, results
         are further broken down by these geographies (e.g., census tracts or
-        ZIP codes). If population data was supplied when initalizing the class,
-        those pop data are used, even if the user supplies additional pop data.
-        Otherwise, the user can supply population data.
-        At least one buffered hazard column must be present in the
+        ZIP codes). At least one buffered hazard column must be present in the
         hazard data; additional columns allow for exposure estimates at multiple
         distances.
 
         Parameters
         ----------
-
         hazard_specific : bool
             If True, exposure is calculated for each hazard individually
             (hazard-specific estimates). If False, geometries are combined before
@@ -332,10 +321,6 @@ class PopEstimator:
             containing buffered hazard geometries. ``buffered_hazard`` columns
             must each have a unique suffix (e.g., ``buffered_hazard_10``,
             ``buffered_hazard_100``, ``buffered_hazard_1000``).
-        pop_data : str or pathlib.Path or None, optional
-            Path to the population raster file. Any raster format supported by
-            rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
-            any coordinate reference system.
         stat : str, default "sum"
             Statistic to calculate from raster values. Options:
             - "sum": Total population within geometry (default)
@@ -420,35 +405,29 @@ class PopEstimator:
             hazard_data = go.get_geometry_intersections(
                 hazards_gdf=hazard_data, admin_units_gdf=self.admin_data
             )
-        if self.pop_data is not None:
-            pop_data_to_use = self.pop_data
-        else:
-            pop_data_to_use = pop_data
 
         exposed = mask_raster_partial_pixel(
-            hazard_data, raster_path=pop_data_to_use, stat=stat
+            hazard_data, raster_path=self.pop_data, stat=stat
         )
 
         return exposed
 
     def est_total_pop(
-        self, pop_data: str | Path | None = None, stat: Literal["sum", "mean"] = "sum"
+        self, stat: Literal["sum", "mean"] = "sum"
     ) -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies
         using a gridded population raster.
 
         This method estimates the total population residing within administrative
-        geographies (e.g., ZCTAs, census tracts) according to a provided gridded
-        population raster. This method is meant to be used with the same population
+        geographies (e.g., ZCTAs, census tracts) encoded in the ``admin_data`` attribute,
+        according to the gridded population raster encoded in the ``pop_data`` attribute.
+        This method is meant to be used with the same population
         raster as ``est_exposed_pop`` to provide denominators for the total population
         in each administrative geography, allowing the user to compute the
         percentage of people exposed to hazards in each admin unit. ``est_total_pop``
         calculates the sum of raster values within the boundaries of each
-        administrative geography geometry provided. If population data was
-        supplied when initalizing the class, those pop data are used, even if
-        the user supplies additional pop data. Otherwise, the user can supply
-        population data.
+        administrative geography geometry provided.
 
         Parameters
         ----------
@@ -456,10 +435,6 @@ class PopEstimator:
             Statistic to calculate from raster values. Options:
             - "sum": Total population within geometry (default)
             - "mean": Average raster value within geometry
-        pop_data : str or pathlib.Path or None, optional
-            Path to the population raster file. Any raster format supported by
-            rasterio is acceptable (e.g., GeoTIFF, NetCDF). The raster can be in
-            any coordinate reference system.
 
         Returns
         -------
@@ -468,13 +443,11 @@ class PopEstimator:
             ``population`` column, where each value is the specified statistic
             (sum or mean) of raster values within the corresponding admin unit geometry.
         """
-        if self.pop_data is not None:
-            pop_data_to_use = self.pop_data
-        else:
-            pop_data_to_use = pop_data
-
+        if self.admin_data is None:
+            raise TypeError("The 'admin_data' attribute cannot be None when calling est_total_pop.")
+        
         residing = mask_raster_partial_pixel(
-            self.admin_data, raster_path=pop_data_to_use, stat=stat
+            self.admin_data, raster_path=self.pop_data, stat=stat
         )
         residing = residing.rename(
             columns=lambda c: c.replace("exposedgeometry", "population")

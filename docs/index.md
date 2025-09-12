@@ -18,9 +18,7 @@ Environmental epidemiologists often assess exposure to hazards using residential
 - **Consistent**: `popexposure` implements a standardized methodology to ensure results are reproducible both within and across research teams.
 - **Flexible**: `popexposure` can estimate the number of people exposesd to any type of hazard and according to any administrative boundary.
 
-### Available functions
-
-## Available methods
+### Core API
 
 | Function          | Overview                                                                                  | Inputs                                                                                      | Outputs                                                       |
 | ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |

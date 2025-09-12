@@ -1,8 +1,4 @@
-<p align="left">
-  <img src="docs/assets/popexposure_logo.png" alt="" width="120"/>
-</p>
-
-## popexposure: Functions to estimate the number of people living near environmental hazards
+# popexposure <a href="https://heathermcb.github.io/popexposure/"><img src="docs/assets/popexposure_logo.png" align="right" alt="popexposure documentation website" width="120" /></a>
 
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -12,7 +8,7 @@
 
 ## Overview
 
-`popexposure` is an open-source Python package providing fast, memory-efficient, and consistent estimates of the number of people living near environmental hazards, enabling environmental scientists to assess population-level exposure to environmental hazards based on residential proximity. Methodological details can be found in [McBrien et al (2025)](). Extensive documentation can be found on in our quick start [tutorial](https://github.com/heathermcb/popexposure/tree/main/docs/tutorials).
+`popexposure` is an open-source Python package providing fast, memory-efficient, and consistent estimates of the number of people living near environmental hazards, enabling environmental scientists to assess population-level exposure to environmental hazards based on residential proximity. Methodological details can be found in [McBrien et al (2025)](). Extensive documentation can be found on our [website](https://heathermcb.github.io/popexposure/), interactive examples in our [tutorials](https://github.com/heathermcb/popexposure/tree/main/docs/tutorials), or scaffolding code in our [quickstart](https://heathermcb.github.io/popexposure/quickstart/).
 
 ## Installation
 
@@ -22,7 +18,7 @@ The easiest way to install `popexposure` is via the latest pre-compiled binaries
 pip install popexposure
 ```
 
-You can build `popexposure` from source as you would any other Python package with:
+You can build `popexposure` from source with:
 
 ```bash
 git clone https://github.com/heathermcb/popexposure
@@ -30,45 +26,38 @@ cd popexposure
 python -m pip install .
 ```
 
-## Tutorials
+## Documentation and tutorials
 
-A number of tutorials providing worked examples using `popexposure` can be found in our [tutorials](https://github.com/heathermcb/popexposure/tree/main/docs/tutorials) folder.
+The `popexposure` API comes with a comprehensive documentation [website](https://heathermcb.github.io/popexposure/).
+
+The [tutorials](https://github.com/heathermcb/popexposure/tree/main/docs/tutorials) folder contains three jupyter notebooks (and a data download bash script) than can be run in sequence to interactively learn how to use `popexposure` to estimate the number of people residing near California wildfire disasters for each year spanning 2016 to 2018.
 
 ## Quickstart
 
 ```python
-import glob
-import pandas as pd
 import popexposure as ex
+import geopandas as gpd
+import pandas as pd
 
 # Set paths
-my_pop_raster_path = "my_pop_raster.tif"
-admin_units_path = "my_admin_units.geojson"
+my_pop_raster_path = "path/to/my_pop_raster.tif"
+my_admin_units_path = "path/to/my_admin_units.geojson"
+my_hazard_data_path = "path/to/my_hazards.geojson"
+
+# Read in hazard data and define buffer(s) of interest (in meters)
+hazard_gdf = gpd.read_file(my_hazard_data_path)
+hazard_gdf["buffer_dist_0km"] = 0
+hazard_gdf["buffer_dist_10km"] = 10_000
+hazard_gdf["buffer_dist_20km"] = 20_000
 
 # Instantiate estimator
-pop_est = ex.PopEstimator(pop_data = my_pop_raster_path, admin_data= my_admin_units.geojson)
+pop_est = ex.PopEstimator(pop_data=my_pop_raster_path, admin_data=my_admin_units_path)
 
-# List of years and corresponding hazard file paths
-years = [2016, 2017, 2018]
-hazard_paths = [
-    "hazard_2016.geojson",
-    "hazard_2017.geojson",
-    "hazard_2018.geojson"
-]
-
-# Find total num ppl residing <= 10km of each hazard in each year
-exposed_list = []
-
-for year, hazard_path in zip(years, hazard_paths):
-    # Estimate exposed population
-    exposed = pop_est.est_exposed_pop(
-        hazard_specific=False,  # set to True if you want per-hazard results
-        hazards=hazard_path,
-    )
-    exposed['year'] = year
-    exposed_list.append(exposed)
-
-exposed_df = pd.concat(exposed_list, axis=0)
+# Find total num ppl residing <= 0, 10, 20km of each hazard in the hazard_gdf
+exposed_df = pop_est.est_exposed_pop(
+    hazard_data=hazard_gdf,  # can also pass in a filepath here, assuming it has necessary columns
+    hazard_specific=False,   # set to True if you need per-hazard results, False for cumulative exposure
+)
 
 # Save output
 exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
@@ -81,6 +70,10 @@ exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
 | `PopEstimator`    | Main class for estimating population exposure; initializes with population and optional admin data | `pop_data` (raster path), `admin_data` (GeoJSON or shapefile path) | PopEstimator object                                           |
 | `est_exposed_pop` | Estimates number of people living within a specified distance of hazards                           | `hazards` (GeoJSON/shapefile), `hazard_specific` (bool)            | DataFrame with exposed population counts by hazard/admin unit |
 | `est_total_pop`   | Estimates total population in administrative units                                                 | None (uses data provided at initialization)                        | DataFrame with total population per administrative unit       |
+
+## Benchmarking for speed, memory consumption
+
+The [benchmarking](benchmarking/) directory contains bare-bones benchmarking scripts and plotted results. 
 
 ## Getting help and contributing
 

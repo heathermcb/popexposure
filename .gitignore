@@ -4,3 +4,5 @@ docs/tutorials/demo_data
 /writing
 *.DS_Store
 *.pyc
+*.dat
+.vscode
