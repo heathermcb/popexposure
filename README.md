@@ -71,6 +71,10 @@ exposed_df.to_parquet("pop_exposed_to_hazards.parquet")
 | `est_exposed_pop` | Estimates number of people living within a specified distance of hazards                           | `hazards` (GeoJSON/shapefile), `hazard_specific` (bool)            | DataFrame with exposed population counts by hazard/admin unit |
 | `est_total_pop`   | Estimates total population in administrative units                                                 | None (uses data provided at initialization)                        | DataFrame with total population per administrative unit       |
 
+## Benchmarking for speed, memory consumption
+
+The [benchmarking](benchmarking/) directory contains bare-bones benchmarking scripts and plotted results. 
+
 ## Getting help and contributing
 
 If you have any questions, a feature request, or would like to report a bug, please [open an issue](https://github.com/heathermcb/popexposure/issues). We also welcome any new contributions and ideas. If you want to add code, please submit a [pull request](https://github.com/heathermcb/popexposure/pulls) and we will get back to you when we can. Thanks!
