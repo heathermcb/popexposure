@@ -395,6 +395,8 @@ class PopEstimator:
             hazard_data
         ):
             hazard_data = hazard_data.copy()
+        elif hazard_data is None:
+            return None
         else:
             hazard_data = self._process_hazard_data(hazard_data)
 
@@ -412,9 +414,7 @@ class PopEstimator:
 
         return exposed
 
-    def est_total_pop(
-        self, stat: Literal["sum", "mean"] = "sum"
-    ) -> pd.DataFrame:
+    def est_total_pop(self, stat: Literal["sum", "mean"] = "sum") -> pd.DataFrame:
         """
         Estimate the total population residing within administrative geographies
         using a gridded population raster.
@@ -444,8 +444,10 @@ class PopEstimator:
             (sum or mean) of raster values within the corresponding admin unit geometry.
         """
         if self.admin_data is None:
-            raise TypeError("The 'admin_data' attribute cannot be None when calling est_total_pop.")
-        
+            raise TypeError(
+                "The 'admin_data' attribute cannot be None when calling est_total_pop."
+            )
+
         residing = mask_raster_partial_pixel(
             self.admin_data, raster_path=self.pop_data, stat=stat
         )
