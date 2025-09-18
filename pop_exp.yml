@@ -17,6 +17,10 @@ dependencies:
   - ipykernel
   - contextily
 
+  # Benchmarking dependencies
+  - memory_profiler
+  - benchmark
+
   # popexposure itself
   - pip
   - pip:
