@@ -35,3 +35,32 @@
   color: #2a4178 !important;
 }
 
+/* Active table-of-contents entry and current sidebar page */
+.md-nav__link--active,
+.md-nav__link:focus,
+.md-nav__link:hover,
+.md-nav__item--active > .md-nav__link {
+  color: #6699CC !important;
+}
+
+/* Accent color used by TOC scroll-highlight and other UI accents */
+:root {
+  --md-accent-fg-color: #6699CC !important;
+}
+
+/* Admonition boxes (info/note style) */
+.md-typeset .admonition.info,
+.md-typeset .admonition.note {
+  border-color: #6699CC !important;
+}
+
+.md-typeset .admonition.info > .admonition-title,
+.md-typeset .admonition.note > .admonition-title {
+  background-color: rgba(102, 153, 204, 0.1) !important;
+}
+
+.md-typeset .admonition.info > .admonition-title::before,
+.md-typeset .admonition.note > .admonition-title::before {
+  background-color: #6699CC !important;
+}
+
