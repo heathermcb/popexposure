@@ -6,6 +6,14 @@
   background-color: #AEC6E8 !important;
 }
 
+.md-typeset a {
+  color: #6699CC !important;
+}
+
+.md-typeset a:hover {
+  color: #4477AA !important;
+}
+
 /* Change navigation text color to blue */
 .md-header__title,
 .md-tabs__link,
