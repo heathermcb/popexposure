@@ -19,17 +19,15 @@ theme:
   name: material
   logo: assets/popexposure_logo.png
   palette:
-    # Palette toggle for light mode
     - scheme: default
-      primary: ffd84e
-      accent: ffd84e
+      primary: indigo
+      accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Palette toggle for dark mode
     - scheme: slate
-      primary: "#ffd84e"
-      accent: "#ffd84e"
+      primary: indigo
+      accent: indigo
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
