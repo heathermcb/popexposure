@@ -1,10 +1,9 @@
 :root {
-  --md-primary-fg-color: #C9D6F0;
-  --md-primary-fg-color--light: #DCE5F5;
-  --md-primary-fg-color--dark: #8DA3D6;
-  --md-accent-fg-color: #2E5090;
-
-  --md-typeset-a-color: #2E5090;
+  --md-primary-fg-color: #C9D6F0 !important;
+  --md-primary-fg-color--light: #DCE5F5 !important;
+  --md-primary-fg-color--dark: #8DA3D6 !important;
+  --md-accent-fg-color: #2E5090 !important;
+  --md-typeset-a-color: #2E5090 !important;
 }
 
 /* Change navigation text color to blue */
