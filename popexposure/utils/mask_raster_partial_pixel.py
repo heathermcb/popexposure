@@ -1,8 +1,10 @@
 import geopandas as gpd
 import pandas as pd
 import rasterio
+import numpy as np
 from exactextract import exact_extract
 from typing import Literal
+
 
 def mask_raster_partial_pixel(
     shp_df: gpd.GeoDataFrame, raster_path: str, stat: Literal["sum", "mean"] = "sum"
@@ -61,6 +63,8 @@ def mask_raster_partial_pixel(
     >>> # Extract average population density (mean)
     >>> result_mean = RasterExtractor.mask_raster_partial_pixel(gdf, "population.tif", stat="mean")
     """
+    shp_df = shp_df.copy()
+
     with rasterio.open(raster_path) as src:
         raster_crs = src.crs
 
@@ -94,7 +98,7 @@ def mask_raster_partial_pixel(
             num_exposed = exact_extract(raster_path, valid_gdf, stat, output="pandas")
             # Use appropriate data type based on statistic
             if stat == "sum":
-                result.loc[valid_mask] = num_exposed[stat].values.astype(int)
+                result.loc[valid_mask] = np.round(num_exposed[stat].values).astype(int)
             else:  # stat == "mean"
                 result.loc[valid_mask] = num_exposed[stat].values.astype(float)
 

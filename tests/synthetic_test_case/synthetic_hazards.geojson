@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "synthetic_hazards",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_hazard": "point_near", "buffer_dist_1": 2000, "buffer_dist_2": 5000 }, "geometry": { "type": "Point", "coordinates": [ 0.269493352497305, 0.269493352497305 ] } },
+{ "type": "Feature", "properties": { "ID_hazard": "point_far", "buffer_dist_1": 2000, "buffer_dist_2": 5000 }, "geometry": { "type": "Point", "coordinates": [ 0.628817822493712, 0.628817822493712 ] } },
+{ "type": "Feature", "properties": { "ID_hazard": "line", "buffer_dist_1": 2000, "buffer_dist_2": 5000 }, "geometry": { "type": "LineString", "coordinates": [ [ 0.089831117499102, 0.089831117499102 ], [ 0.089831117499102, 0.179662234998203 ] ] } },
+{ "type": "Feature", "properties": { "ID_hazard": "polygon", "buffer_dist_1": 2000, "buffer_dist_2": 5000 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 0.52102048149479, 0.52102048149479 ], [ 0.55695292849443, 0.52102048149479 ], [ 0.55695292849443, 0.55695292849443 ], [ 0.52102048149479, 0.55695292849443 ], [ 0.52102048149479, 0.52102048149479 ] ] ] } },
+{ "type": "Feature", "properties": { "ID_hazard": "missing_geom", "buffer_dist_1": 2000, "buffer_dist_2": 5000 }, "geometry": null }
+]
+}

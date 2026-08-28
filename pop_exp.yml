@@ -21,6 +21,9 @@ dependencies:
   - memory_profiler
   - benchmark
 
+  # Testing dependencies
+  - pytest
+
   # popexposure itself
   - pip
   - pip:
